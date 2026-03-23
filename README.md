@@ -114,3 +114,4 @@ sibo-web/
 - El PDF se genera en memoria y se descarga directamente al navegador; no se guarda en ningún servidor.
 - Supabase solo almacena emails y contraseñas de los usuarios (los médicos), no datos de pacientes.
 - Para cumplir con la Ley 25.326 (Argentina), se recomienda elegir la región **South America (São Paulo)** al crear el proyecto en Supabase.
+# siboweb
