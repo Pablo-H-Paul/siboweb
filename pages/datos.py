@@ -7,28 +7,30 @@ Cambios:
 - El usuario puede sobreescribir manualmente después del autoajuste
 """
 
-import os, io
+import os
+import io
 import streamlit as st
 from datetime import datetime, date
 from pathlib import Path
 
 # Rutas de archivos persistentes (relativas al directorio del proyecto)
-ASSETS_DIR  = Path(__file__).parent.parent / "assets"
-LOGO_PATH   = ASSETS_DIR / "logo.png"
-FIRMA_PATH  = ASSETS_DIR / "firma.png"
+ASSETS_DIR = Path(__file__).parent.parent / "assets"
+LOGO_PATH = ASSETS_DIR / "logo.png"
+FIRMA_PATH = ASSETS_DIR / "firma.png"
 
 ESPECIALIDADES = [
-    "Gastroenterología","Clínica Médica / Medicina Interna",
-    "Medicina General / Familiar","Nutrición y Dietética",
-    "Pediatría","Cirugía General","Endocrinología",
-    "Infectología","Hepatología","Oncología",
-    "Reumatología","Geriatría","Otra",
+    "Gastroenterología", "Clínica Médica / Medicina Interna",
+    "Medicina General / Familiar", "Nutrición y Dietética",
+    "Pediatría", "Cirugía General", "Endocrinología",
+    "Infectología", "Hepatología", "Oncología",
+    "Reumatología", "Geriatría", "Otra",
 ]
-SEXOS    = ["Masculino","Femenino","Otro"]
-SINTOMAS = ["Flatulencia","Dolor Abdominal","Diarrea","Estreñimiento","Distensión"]
+SEXOS = ["Masculino", "Femenino", "Otro"]
+SINTOMAS = ["Flatulencia", "Dolor Abdominal",
+            "Diarrea", "Estreñimiento", "Distensión"]
 
 TIPO_SUSTRATO = {
-    "SIBO":                       ["Lactulosa","Glucosa"],
+    "SIBO":                       ["Lactulosa", "Glucosa"],
     "Intolerancia a la Lactosa":  ["Lactosa"],
     "Intolerancia a la Fructosa": ["Fructosa"],
     "Intolerancia al Sorbitol":   ["Sorbitol"],
@@ -63,62 +65,74 @@ TODAY = datetime.now().strftime("%d/%m/%Y")
 def _ensure_assets():
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def _load_asset(path: Path):
     """Carga un archivo de /assets/ y retorna sus bytes, o None si no existe."""
     if path.exists():
         return path.read_bytes()
     return None
 
+
 def _save_asset(path: Path, data: bytes):
     _ensure_assets()
     path.write_bytes(data)
 
+
 def _init_state():
     defaults = {
-        "prof_nombre":"","prof_apellido":"","prof_esp":"Gastroenterología",
-        "prof_mat":"","prof_inst":"","prof_email":"","prof_tel":"",
-        "pac_nombre":"","pac_apellido":"",
-        "pac_fnac":"","pac_edad":"","pac_sexo":"Femenino",
-        "pac_fecha":TODAY,"pac_obra_social":"",
-        "tipo_analisis":"SIBO","sustrato":"Lactulosa",
-        "n_mediciones":7,"intervalo":30,"umbral":20,
-        "_prev_tipo":"","_prev_sust":"",
-        **{f"h2_{i}":"" for i in range(15)},
-        **{f"ch4_{i}":"" for i in range(15)},
-        **{f"sint_{s}":False for s in SINTOMAS},
-        "sint_otros":"",
-        "interpretacion":"",
+        "prof_nombre": "", "prof_apellido": "", "prof_esp": "Gastroenterología",
+        "prof_mat": "", "prof_inst": "", "prof_email": "", "prof_tel": "",
+        "pac_nombre": "", "pac_apellido": "",
+        "pac_fnac": "", "pac_edad": "", "pac_sexo": "Femenino",
+        "pac_fecha": TODAY, "pac_obra_social": "",
+        "tipo_analisis": "SIBO", "sustrato": "Lactulosa",
+        "n_mediciones": 7, "intervalo": 30, "umbral": 20,
+        "_prev_tipo": "", "_prev_sust": "",
+        **{f"h2_{i}": "" for i in range(15)},
+        **{f"ch4_{i}": "" for i in range(15)},
+        **{f"sint_{s}": False for s in SINTOMAS},
+        "sint_otros": "",
+        "interpretacion": "",
     }
     for k, v in defaults.items():
         st.session_state.setdefault(k, v)
 
+
 def _validate_date(s):
-    if not s: return True
+    if not s:
+        return True
     try:
-        datetime.strptime(s.strip(), "%d/%m/%Y"); return True
-    except ValueError: return False
+        datetime.strptime(s.strip(), "%d/%m/%Y")
+        return True
+    except ValueError:
+        return False
+
 
 def _calc_edad(fnac_str):
     try:
         fnac = datetime.strptime(fnac_str.strip(), "%d/%m/%Y").date()
-        hoy  = date.today()
-        return str(hoy.year - fnac.year - ((hoy.month,hoy.day)<(fnac.month,fnac.day)))
-    except ValueError: return ""
+        hoy = date.today()
+        return str(hoy.year - fnac.year - ((hoy.month, hoy.day) < (fnac.month, fnac.day)))
+    except ValueError:
+        return ""
+
 
 def _get_defaults(tipo, sustrato):
     if tipo == "SIBO" and sustrato == "Glucosa":
         return SIBO_GLUCOSA_DEFAULTS
     return TIPO_DEFAULTS.get(tipo, (7, 30, 20))
 
+
 def _apply_defaults(tipo, sustrato):
     n, iv, umb = _get_defaults(tipo, sustrato)
     st.session_state["n_mediciones"] = n
-    st.session_state["intervalo"]    = iv
-    st.session_state["umbral"]       = umb
+    st.session_state["intervalo"] = iv
+    st.session_state["umbral"] = umb
+
 
 def _tipo_changed(tipo, sustrato):
-    return (tipo  != st.session_state.get("_prev_tipo","") or
-            sustrato != st.session_state.get("_prev_sust",""))
+    return (tipo != st.session_state.get("_prev_tipo", "") or
+            sustrato != st.session_state.get("_prev_sust", ""))
 
 
 # ── Render ──────────────────────────────────────────────────────────
@@ -137,28 +151,34 @@ def render():
         # ── Profesional ──────────────────────────────────────────────
         with st.expander("**Profesional médico**", expanded=True):
             c1, c2 = st.columns(2)
-            st.session_state["prof_nombre"]   = c1.text_input("Nombre",   value=st.session_state["prof_nombre"],   key="_pn")
-            st.session_state["prof_apellido"] = c2.text_input("Apellido", value=st.session_state["prof_apellido"], key="_pa")
+            st.session_state["prof_nombre"] = c1.text_input(
+                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn")
+            st.session_state["prof_apellido"] = c2.text_input(
+                "Apellido", value=st.session_state["prof_apellido"], key="_pa")
 
             esp_idx = ESPECIALIDADES.index(st.session_state["prof_esp"]) \
-                      if st.session_state["prof_esp"] in ESPECIALIDADES else 0
+                if st.session_state["prof_esp"] in ESPECIALIDADES else 0
             st.session_state["prof_esp"] = st.selectbox(
                 "Especialidad", ESPECIALIDADES, index=esp_idx, key="_esp")
 
             c3, c4 = st.columns(2)
-            st.session_state["prof_mat"]  = c3.text_input("Matrícula",   value=st.session_state["prof_mat"],  key="_pm")
-            st.session_state["prof_inst"] = c4.text_input("Institución", value=st.session_state["prof_inst"], key="_pi")
+            st.session_state["prof_mat"] = c3.text_input(
+                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm")
+            st.session_state["prof_inst"] = c4.text_input(
+                "Institución", value=st.session_state["prof_inst"], key="_pi")
 
         # ── Paciente ─────────────────────────────────────────────────
         with st.expander("**Datos del paciente**", expanded=True):
             c1, c2 = st.columns(2)
-            st.session_state["pac_nombre"]   = c1.text_input("Nombre",   value=st.session_state["pac_nombre"],   key="_pcn")
-            st.session_state["pac_apellido"] = c2.text_input("Apellido", value=st.session_state["pac_apellido"], key="_pca")
+            st.session_state["pac_nombre"] = c1.text_input(
+                "Nombre",   value=st.session_state["pac_nombre"],   key="_pcn")
+            st.session_state["pac_apellido"] = c2.text_input(
+                "Apellido", value=st.session_state["pac_apellido"], key="_pca")
 
             c3, c4 = st.columns(2)
             fnac = c3.text_input("Fecha de nacimiento (DD/MM/AAAA)",
-                                  value=st.session_state["pac_fnac"],
-                                  key="_pfnac", placeholder="25/03/1985")
+                                 value=st.session_state["pac_fnac"],
+                                 key="_pfnac", placeholder="25/03/1985")
             if not _validate_date(fnac):
                 c3.error("Formato inválido — DD/MM/AAAA")
             else:
@@ -166,7 +186,7 @@ def render():
                 st.session_state["pac_edad"] = _calc_edad(fnac)
 
             sexo_idx = SEXOS.index(st.session_state["pac_sexo"]) \
-                       if st.session_state["pac_sexo"] in SEXOS else 0
+                if st.session_state["pac_sexo"] in SEXOS else 0
             st.session_state["pac_sexo"] = c4.selectbox(
                 "Sexo", SEXOS, index=sexo_idx, key="_psexo")
 
@@ -175,8 +195,8 @@ def render():
                           key="_pedad", disabled=True)
 
             fecha_est = c6.text_input("Fecha del estudio (DD/MM/AAAA)",
-                                       value=st.session_state["pac_fecha"],
-                                       key="_pfecha", placeholder=TODAY)
+                                      value=st.session_state["pac_fecha"],
+                                      key="_pfecha", placeholder=TODAY)
             if not _validate_date(fecha_est):
                 c6.error("Formato inválido — DD/MM/AAAA")
             else:
@@ -187,42 +207,42 @@ def render():
                 value=st.session_state["pac_obra_social"], key="_pos")
 
         # ── Logo de la institución ────────────────────────────────────
-        with st.expander("**Logo de la institución**", expanded=False):
-            logo_bytes = _load_asset(LOGO_PATH)
-            if logo_bytes:
-                st.image(logo_bytes, width=200)
-                st.caption(f"Logo cargado desde `assets/logo.png`")
-            else:
-                st.caption("No hay logo guardado. Subí uno a continuación.")
+        # with st.expander("**Logo de la institución**", expanded=False):
+        #    logo_bytes = _load_asset(LOGO_PATH)
+        #    if logo_bytes:
+        #        st.image(logo_bytes, width=200)
+        #        st.caption(f"Logo cargado desde `assets/logo.png`")
+        #    else:
+        #        st.caption("No hay logo guardado. Subí uno a continuación.")
 
-            st.markdown("**Reemplazar logo:**")
-            logo_file = st.file_uploader(
-                "Subir logo (JPG, PNG)", type=["jpg","jpeg","png","webp","bmp"],
-                key="_logo_up", label_visibility="collapsed")
-            if logo_file:
-                data = logo_file.read()
-                _save_asset(LOGO_PATH, data)
-                st.success("Logo guardado en `assets/logo.png`. Se usará en todos los PDF.")
-                st.rerun()
+        #    st.markdown("**Reemplazar logo:**")
+        #    logo_file = st.file_uploader(
+        #        "Subir logo (JPG, PNG)", type=["jpg","jpeg","png","webp","bmp"],
+        #        key="_logo_up", label_visibility="collapsed")
+        #    if logo_file:
+        #        data = logo_file.read()
+        #        _save_asset(LOGO_PATH, data)
+        #        st.success("Logo guardado en `assets/logo.png`. Se usará en todos los PDF.")
+        #        st.rerun()
 
         # ── Firma digital ─────────────────────────────────────────────
-        with st.expander("**Firma digital del profesional**", expanded=False):
-            firma_bytes = _load_asset(FIRMA_PATH)
-            if firma_bytes:
-                st.image(firma_bytes, width=220)
-                st.caption(f"Firma cargada desde `assets/firma.png`")
-            else:
-                st.caption("No hay firma guardada. Subí una a continuación.")
+        # with st.expander("**Firma digital del profesional**", expanded=False):
+        #    firma_bytes = _load_asset(FIRMA_PATH)
+        #    if firma_bytes:
+        #        st.image(firma_bytes, width=220)
+        #        st.caption(f"Firma cargada desde `assets/firma.png`")
+        #    else:
+        #        st.caption("No hay firma guardada. Subí una a continuación.")
 
-            st.markdown("**Reemplazar firma:**")
-            firma_file = st.file_uploader(
-                "Subir firma (JPG, PNG)", type=["jpg","jpeg","png"],
-                key="_firma_up", label_visibility="collapsed")
-            if firma_file:
-                data = firma_file.read()
-                _save_asset(FIRMA_PATH, data)
-                st.success("Firma guardada en `assets/firma.png`. Se usará en todos los PDF.")
-                st.rerun()
+        #    st.markdown("**Reemplazar firma:**")
+        #    firma_file = st.file_uploader(
+        #        "Subir firma (JPG, PNG)", type=["jpg","jpeg","png"],
+        #        key="_firma_up", label_visibility="collapsed")
+        #    if firma_file:
+        #        data = firma_file.read()
+        #        _save_asset(FIRMA_PATH, data)
+        #        st.success("Firma guardada en `assets/firma.png`. Se usará en todos los PDF.")
+        #        st.rerun()
 
     # ═══════════════════════════════════════════
     # COL 2 — Síntomas + Análisis + Mediciones + PPM
@@ -242,16 +262,17 @@ def render():
         # ── Tipo de análisis ─────────────────────────────────────────
         with st.expander("**Tipo de análisis y sustrato**", expanded=True):
             tipo_idx = TIPOS.index(st.session_state["tipo_analisis"]) \
-                       if st.session_state["tipo_analisis"] in TIPOS else 0
+                if st.session_state["tipo_analisis"] in TIPOS else 0
             tipo = st.selectbox("Tipo de análisis", TIPOS,
                                 index=tipo_idx, key="_tipo")
             st.session_state["tipo_analisis"] = tipo
 
             sust_opts = TIPO_SUSTRATO[tipo]
-            cur_sust  = st.session_state["sustrato"]
-            sust_idx  = sust_opts.index(cur_sust) if cur_sust in sust_opts else 0
-            sustrato  = st.selectbox("Sustrato", sust_opts,
-                                     index=sust_idx, key="_sust")
+            cur_sust = st.session_state["sustrato"]
+            sust_idx = sust_opts.index(
+                cur_sust) if cur_sust in sust_opts else 0
+            sustrato = st.selectbox("Sustrato", sust_opts,
+                                    index=sust_idx, key="_sust")
             st.session_state["sustrato"] = sustrato
 
             # Autoajuste cuando cambia tipo o sustrato
@@ -281,8 +302,8 @@ def render():
 
             # Intervalo
             iv_opts = [10, 20, 30]
-            iv_cur  = st.session_state["intervalo"]
-            iv_idx  = iv_opts.index(iv_cur) if iv_cur in iv_opts else 2
+            iv_cur = st.session_state["intervalo"]
+            iv_idx = iv_opts.index(iv_cur) if iv_cur in iv_opts else 2
             iv = st.radio(
                 "Minutos entre tomas",
                 iv_opts, index=iv_idx, horizontal=True, key="_iv",
@@ -311,16 +332,16 @@ def render():
         # ── Valores PPM ──────────────────────────────────────────────
         with st.expander("**Valores PPM — H₂ y CH₄**", expanded=True):
             tiempos = [i * iv for i in range(n)]
-            tls     = [f"{t} min" for t in tiempos]
+            tls = [f"{t} min" for t in tiempos]
 
-            hc = st.columns([2,2,2])
+            hc = st.columns([2, 2, 2])
             hc[0].markdown("**Tiempo**")
             hc[1].markdown("**H₂ (ppm)**")
             hc[2].markdown("**CH₄ (ppm)**")
             st.divider()
 
             for i in range(n):
-                rc = st.columns([2,2,2])
+                rc = st.columns([2, 2, 2])
                 rc[0].markdown(
                     f"<div style='padding-top:6px;color:gray;font-size:13px'>"
                     f"{tls[i]}</div>",
@@ -336,7 +357,7 @@ def render():
 
         # ── Interpretación ───────────────────────────────────────────
         with st.expander("**Interpretación del profesional (opcional)**",
-                          expanded=False):
+                         expanded=False):
             st.session_state["interpretacion"] = st.text_area(
                 "Observaciones",
                 value=st.session_state["interpretacion"],
