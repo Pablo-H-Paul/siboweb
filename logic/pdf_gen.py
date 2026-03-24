@@ -198,7 +198,7 @@ def generate_pdf(data: dict,
                                  fontName="Helvetica-Bold" if bold else "Helvetica",
                                  alignment=TA_CENTER))
 
-    pr = [[phc("Tiempo"), phc("H₂ (ppm)"), phc("CH₄ (ppm)")]]
+    pr = [[phc("Tiempo"), phc("H2 (ppm)"), phc("CH4 (ppm)")]]
     for i, tl in enumerate(time_lbls):
         pr.append([
             phc(tl, DARK, False),
