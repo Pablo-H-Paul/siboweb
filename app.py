@@ -124,8 +124,8 @@ def _build_pdf_data():
 
 # ── APP ──────────────────────────────────────────────────────────────
 def show_app():
-    # user = auth.get_user()
-    # email = user.email if user else ""
+    user = auth.get_user()
+    email = user.email if user else ""
 
     hc1, hc2 = st.columns([5, 3])
     with hc1:
