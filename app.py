@@ -51,7 +51,7 @@ def show_login():
                                   placeholder="medico@institucion.com")
             password = st.text_input("Contraseña", type="password")
 
-            if st.button("Ingresar", use_column_width=True, type="primary"):
+            if st.button("Ingresar", use_container_width=True, type="primary"):
                 if not email or not password:
                     st.error("Ingresá tu correo y contraseña.")
                 else:
@@ -141,7 +141,7 @@ def show_app():
         bc1, bc2, bc3, bc4 = st.columns(4)
 
         # Generar PDF — logo y firma se cargan automáticamente desde assets/
-        if bc1.button("📄 PDF", use_column_width=True, type="primary"):
+        if bc1.button("📄 PDF", use_container_width=True, type="primary"):
             try:
                 data = _build_pdf_data()
                 # Logo y firma: generate_pdf los carga desde assets/ por defecto
@@ -161,16 +161,16 @@ def show_app():
                 data=st.session_state["_pdf_bytes"],
                 file_name=st.session_state.get("_pdf_filename", "informe.pdf"),
                 mime="application/pdf",
-                use_column_width=True,
+                use_container_width=True,
             )
 
-        if bc3.button("Limpiar", use_column_width=True):
+        if bc3.button("Limpiar", use_container_width=True):
             preserve = {"_pdf_bytes", "_pdf_filename"}
             for k in [k for k in st.session_state if k not in preserve]:
                 del st.session_state[k]
             st.rerun()
 
-        if bc4.button("Salir", use_column_width=True):
+        if bc4.button("Salir", use_container_width=True):
             auth.logout()
             st.rerun()
 
