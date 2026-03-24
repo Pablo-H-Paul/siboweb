@@ -1,17 +1,18 @@
 """
-Generación de PDF — v7.0
-- Logo de institución (JPG/PNG)
-- Firma digital (JPG/PNG) con espacio generoso antes de la línea de firma
-- Nombre, apellido y matrícula debajo de la firma
+Generación de PDF — v8.0
+- Logo: cargado desde assets/logo.png automáticamente
+- Firma: cargado desde assets/firma.png automáticamente
+- Firma alineada al margen DERECHO con espacio generoso
 - Sin DNI, email ni nro. afiliado del paciente
-- Retorna bytes (no escribe a disco)
+- Retorna bytes
 """
 
 import io, os
 from datetime import datetime
+from pathlib import Path
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
@@ -23,11 +24,32 @@ from reportlab.platypus import (
 from logic.auc import calcular_auc
 from logic.interpretacion import interpretar
 
-EFECTOS = ["Flatulencia", "Dolor Abdominal", "Diarrea", "Estreñimiento", "Distensión"]
-TODAY   = datetime.now().strftime("%d/%m/%Y")
+EFECTOS    = ["Flatulencia","Dolor Abdominal","Diarrea","Estreñimiento","Distensión"]
+TODAY      = datetime.now().strftime("%d/%m/%Y")
+ASSETS_DIR = Path(__file__).parent.parent / "assets"
+LOGO_PATH  = ASSETS_DIR / "logo.png"
+FIRMA_PATH = ASSETS_DIR / "firma.png"
 
 
-def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | None = None) -> bytes:
+def _load_image(path: Path, width_cm: float, height_cm: float):
+    """Carga una imagen desde disco si existe; retorna RLImage o None."""
+    if path.exists():
+        try:
+            return RLImage(str(path), width=width_cm*cm, height=height_cm*cm,
+                           kind="proportional")
+        except Exception:
+            return None
+    return None
+
+
+def generate_pdf(data: dict,
+                 logo_path: str | None = None,
+                 firma_path: str | None = None) -> bytes:
+    """
+    Genera el PDF y retorna bytes.
+    logo_path / firma_path: si se pasan explícitamente (ej. desde un tempfile)
+    se usan en su lugar; si son None se intenta cargar desde assets/.
+    """
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
         buf, pagesize=A4,
@@ -38,6 +60,7 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
     cw    = W - 4*cm
     story = []
 
+    # ── Colores ─────────────────────────────────────────────────────
     DARK  = colors.HexColor("#1E3A5F")
     BLUE  = colors.HexColor("#2563EB")
     GREEN = colors.HexColor("#10B981")
@@ -70,17 +93,18 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
         a = fv.get(f"{prefix}_apellido", "").strip()
         return f"{n} {a}".strip() or "—"
 
-    # ── Logo ─────────────────────────────────────────────────────────
+    # ── Logo: primero arg explícito, luego assets/ ───────────────────
     logo = None
-    if logo_path and os.path.exists(logo_path):
+    _logo_p = Path(logo_path) if logo_path else LOGO_PATH
+    if _logo_p.exists():
         try:
-            logo = RLImage(logo_path, width=4.5*cm, height=1.6*cm, kind="proportional")
+            logo = RLImage(str(_logo_p), width=4.5*cm, height=1.6*cm, kind="proportional")
         except Exception:
             pass
 
     # ── Encabezado ───────────────────────────────────────────────────
     hdr = Table([[
-        logo if logo else Paragraph("CIMEQ", sT),
+        logo if logo else Paragraph("", sSu),
         [
             Paragraph("INFORME DE PRUEBA DE HIDRÓGENO ESPIRADO", sT),
             Paragraph(f"Estudio: {data.get('tipo_analisis','SIBO')} — Sustrato: {data.get('sustrato','')}", sSu),
@@ -98,7 +122,8 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
     # ── Info block ───────────────────────────────────────────────────
     def ib(pairs):
         t = Table(
-            [[Paragraph(l, sLb), Paragraph(str(v) if v else "—", sVl)] for l, v in pairs],
+            [[Paragraph(l, sLb), Paragraph(str(v) if v else "—", sVl)]
+             for l, v in pairs],
             colWidths=[3.5*cm, None],
         )
         t.setStyle(TableStyle([
@@ -111,30 +136,29 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
         ]))
         return t
 
+    # ── Dos columnas: profesional | paciente (sin DNI/email/afiliado) ─
     pb = [Paragraph("PROFESIONAL MÉDICO", sSH), ib([
         ("Nombre",       full("prof")),
         ("Especialidad", fv.get("prof_esp", "")),
         ("Matrícula",    fv.get("prof_mat", "")),
         ("Institución",  fv.get("prof_inst", "")),
     ])]
-    # Paciente sin DNI, email ni nro. afiliado
     pcb = [Paragraph("DATOS DEL PACIENTE", sSH), ib([
         ("Nombre",      full("pac")),
         ("Fecha Nac.",  fv.get("pac_fnac", "")),
         ("Edad / Sexo", f"{fv.get('pac_edad','')} / {fv.get('pac_sexo','')}"),
         ("Obra social", fv.get("pac_obra_social", "")),
     ])]
-
     story.append(Table(
         [[pb, pcb]], colWidths=[cw/2, cw/2],
         style=[("VALIGN",(0,0),(-1,-1),"TOP"),
                ("LEFTPADDING",(0,0),(-1,-1),0),
                ("RIGHTPADDING",(0,0),(-1,-1),4)],
     ))
-    story += [Spacer(1,4), HRFlowable(width="100%", thickness=0.5, color=BLUE), Spacer(1,6)]
+    story += [Spacer(1,4), HRFlowable(width="100%",thickness=0.5,color=BLUE), Spacer(1,6)]
 
     # ── Síntomas ─────────────────────────────────────────────────────
-    sint_txt = ", ".join(data.get("sint_pre", [])) or "Ninguno"
+    sint_txt = ", ".join(data.get("sint_pre",[])) or "Ninguno"
     if data.get("sint_otros"):
         sint_txt += f"  |  Otros: {data['sint_otros']}"
     story += [Paragraph("SÍNTOMAS ANTERIORES A LA PRUEBA", sSH),
@@ -161,13 +185,13 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
     for i, tl in enumerate(time_lbls):
         pr.append([
             phc(tl, DARK, False),
-            phc(str(h2_vals[i])  if i < len(h2_vals)  and h2_vals[i]  is not None else "—",
+            phc(str(h2_vals[i])  if i<len(h2_vals)  and h2_vals[i]  is not None else "—",
                 colors.HexColor("#2563EB"), False),
-            phc(str(ch4_vals[i]) if i < len(ch4_vals) and ch4_vals[i] is not None else "—",
+            phc(str(ch4_vals[i]) if i<len(ch4_vals) and ch4_vals[i] is not None else "—",
                 colors.HexColor("#10B981"), False),
         ])
     wc = cw / 3
-    pt = Table(pr, colWidths=[wc, wc, wc])
+    pt = Table(pr, colWidths=[wc,wc,wc])
     pt.setStyle(TableStyle([
         ("BACKGROUND",    (0,0),(-1,0),  DARK),
         ("ROWBACKGROUNDS",(0,1),(-1,-1), [LGREY, colors.white]),
@@ -198,14 +222,12 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
         ]
 
     # ── Interpretación ───────────────────────────────────────────────
-    story += [HRFlowable(width="100%", thickness=0.5, color=BLUE),
-              Spacer(1, 6),
-              Paragraph("RESULTADO E INTERPRETACIÓN", sSH)]
-
+    story += [HRFlowable(width="100%",thickness=0.5,color=BLUE),
+              Spacer(1,6), Paragraph("RESULTADO E INTERPRETACIÓN", sSH)]
     tit, cpo, pos = interpretar(
         h2_vals, ch4_vals,
-        data.get("tipo_analisis", "SIBO"),
-        data.get("sustrato", "Lactulosa"),
+        data.get("tipo_analisis","SIBO"),
+        data.get("sustrato","Lactulosa"),
         tiempos, umbral,
     )
     story.append(Paragraph(tit, sIP if pos else sIN))
@@ -214,27 +236,27 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
         if line:
             story.append(Paragraph(line, sCo if "CONSULTE" in line.upper() else sAU))
 
-    if data.get("interpretacion", "").strip():
+    if data.get("interpretacion","").strip():
         story += [Spacer(1,6), Paragraph("OBSERVACIONES DEL PROFESIONAL", sSH),
                   Paragraph(data["interpretacion"].strip(), sBo)]
 
-    story += [Spacer(1,8), HRFlowable(width="100%", thickness=0.5, color=BLUE), Spacer(1,6)]
+    story += [Spacer(1,8), HRFlowable(width="100%",thickness=0.5,color=BLUE), Spacer(1,6)]
 
     # ── Efectos adversos ─────────────────────────────────────────────
-    ef_raw   = data.get("ef_vars", {})
+    ef_raw   = data.get("ef_vars",{})
     ef_found = [
-        (time_lbls[i], ", ".join(s for s in EFECTOS if ef_raw.get(i,{}).get(s, False)))
+        (time_lbls[i], ", ".join(s for s in EFECTOS if ef_raw.get(i,{}).get(s,False)))
         for i in range(len(time_lbls))
-        if any(ef_raw.get(i,{}).get(s, False) for s in EFECTOS)
+        if any(ef_raw.get(i,{}).get(s,False) for s in EFECTOS)
     ]
     story.append(Paragraph("EFECTOS ADVERSOS DURANTE LA PRUEBA", sSH))
     if ef_found:
         def pth(tx):
-            return Paragraph(tx, ps("_th", fontSize=8, textColor=colors.white,
+            return Paragraph(tx, ps("_th",fontSize=8,textColor=colors.white,
                                      fontName="Helvetica-Bold"))
         et = Table(
             [[pth("Tiempo"), pth("Síntomas")]] +
-            [[Paragraph(tl, sBo), Paragraph(sx, sBo)] for tl, sx in ef_found],
+            [[Paragraph(tl,sBo), Paragraph(sx,sBo)] for tl,sx in ef_found],
             colWidths=[3*cm, cw-3*cm],
         )
         et.setStyle(TableStyle([
@@ -256,50 +278,58 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
     story += [Spacer(1,6), Paragraph("MEDICACIÓN", sSH),
               Paragraph(data.get("medicacion","").strip() or "Sin registro.", sBo)]
 
-    # ── Firma digital + datos del profesional ────────────────────────
-    # Espacio generoso antes de la firma
-    story.append(Spacer(1, 36))
+    # ═══════════════════════════════════════════════════════════════
+    # FIRMA — alineada al margen DERECHO
+    # Layout: celda vacía a la izquierda | bloque de firma a la derecha
+    # ═══════════════════════════════════════════════════════════════
+    story.append(Spacer(1, 40))  # espacio generoso antes de la firma
 
     prof_nombre_completo = full("prof")
     prof_mat = fv.get("prof_mat","")
     prof_esp = fv.get("prof_esp","")
 
-    # Firma digital (imagen) si está disponible
-    if firma_path and os.path.exists(firma_path):
+    LEFT_W  = cw * 0.45   # espacio vacío izquierdo
+    RIGHT_W = cw * 0.55   # bloque de firma a la derecha
+
+    # Imagen de firma (arg explícito o desde assets/)
+    _firma_p = Path(firma_path) if firma_path else FIRMA_PATH
+    firma_img = None
+    if _firma_p.exists():
         try:
-            firma_img = RLImage(firma_path, width=5*cm, height=2*cm, kind="proportional")
-            firma_tbl = Table(
-                [[firma_img, ""]],
-                colWidths=[cw * 0.4, cw * 0.6],
-            )
-            firma_tbl.setStyle(TableStyle([
-                ("ALIGN",  (0,0),(0,0), "CENTER"),
-                ("VALIGN", (0,0),(-1,-1), "BOTTOM"),
-            ]))
-            story.append(firma_tbl)
-            story.append(Spacer(1, 4))
+            firma_img = RLImage(str(_firma_p), width=5*cm, height=2*cm,
+                                kind="proportional")
         except Exception:
             pass
 
-    # Línea de firma + datos
-    sig_data = [
-        ["", ""],
-        [
-            Paragraph(f"<b>{prof_nombre_completo}</b>", sSig),
-            "",
-        ],
-        [
-            Paragraph(f"{prof_esp}  —  Mat. {prof_mat}", sSub),
-            "",
-        ],
-    ]
-    sig = Table(sig_data, colWidths=[cw * 0.5, cw * 0.5])
-    sig.setStyle(TableStyle([
-        ("LINEABOVE",    (0,0),(0,0), 0.8, DARK),
-        ("TOPPADDING",   (0,0),(-1,-1), 4),
-        ("BOTTOMPADDING",(0,0),(-1,-1), 2),
+    # Construir la tabla de firma derecha
+    firma_rows = []
+    if firma_img:
+        firma_rows.append(["", firma_img])
+    # Línea horizontal sobre el nombre (solo en col derecha)
+    # Nombre + matrícula
+    firma_rows.append([
+        "",
+        Paragraph(f"<b>{prof_nombre_completo}</b>", sSig),
+    ])
+    firma_rows.append([
+        "",
+        Paragraph(f"{prof_esp}  —  Mat. {prof_mat}", sSub),
+    ])
+
+    sig_tbl = Table(firma_rows, colWidths=[LEFT_W, RIGHT_W])
+
+    # Línea encima de la celda del nombre (primera fila sin imagen, o segunda si hay imagen)
+    nombre_row_idx = 1 if firma_img else 0
+    sig_tbl.setStyle(TableStyle([
+        ("VALIGN",       (0,0), (-1,-1), "BOTTOM"),
+        ("ALIGN",        (1,0), (1,-1),  "CENTER"),
+        ("LINEABOVE",    (1, nombre_row_idx), (1, nombre_row_idx), 0.8, DARK),
+        ("TOPPADDING",   (0,0), (-1,-1), 3),
+        ("BOTTOMPADDING",(0,0), (-1,-1), 2),
+        ("LEFTPADDING",  (0,0), (-1,-1), 0),
+        ("RIGHTPADDING", (0,0), (-1,-1), 0),
     ]))
-    story.append(sig)
+    story.append(sig_tbl)
 
     # ── Pie de página ────────────────────────────────────────────────
     story += [
@@ -307,7 +337,7 @@ def generate_pdf(data: dict, logo_path: str | None = None, firma_path: str | Non
         HRFlowable(width="100%", thickness=0.3, color=GREY),
         Paragraph(
             f"Informe generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')} "
-            f"— SIBO Analyzer v7.0",
+            f"— SIBO Analyzer v8.0",
             sFt,
         ),
     ]
