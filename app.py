@@ -62,7 +62,7 @@ def show_login():
                     if user:
                         # st.rerun()
                         # Comentado para probar sin usuario
-                        show_app()
+                        user
                     else:
                         st.error("Credenciales incorrectas.")
 
@@ -124,8 +124,8 @@ def _build_pdf_data():
 
 # ── APP ──────────────────────────────────────────────────────────────
 def show_app():
-    user = auth.get_user()
-    email = user.email if user else ""
+    # user = auth.get_user()
+    # email = user.email if user else ""
 
     hc1, hc2 = st.columns([5, 3])
     with hc1:
@@ -188,7 +188,8 @@ def show_app():
 
 
 # ── ENTRY POINT ──────────────────────────────────────────────────────
-if auth.is_authenticated():
-    show_app()
-else:
-    show_login()
+# if auth.is_authenticated():
+#    show_app()
+# else:
+#    show_login()
+show_app()
