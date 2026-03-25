@@ -14,7 +14,7 @@ def _init_state():
         for s in EFECTOS:
             st.session_state.setdefault(f"ef_{i}_{s}", False)
     st.session_state.setdefault("ef_otros",  "")
-    # st.session_state.setdefault("medicacion", "")
+    st.session_state.setdefault("medicacion", "")
 
 
 def render():
@@ -53,7 +53,6 @@ def render():
             "Otros", value=st.session_state["ef_otros"],
             height=100, label_visibility="collapsed", key="_ef_otros")
 
-    # Remover medicación - no es necesario
     # with col_b:
     #    st.markdown("#### Medicación del paciente")
     #    st.session_state["medicacion"] = st.text_area(

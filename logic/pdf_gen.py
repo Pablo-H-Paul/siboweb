@@ -120,7 +120,7 @@ def generate_pdf(data: dict,
     hdr = Table([[
         logo if logo else Paragraph("", sSu),
         [
-            Paragraph("INFORME DE PRUEBA", sT),
+            Paragraph("INFORME DE PRUEBA DE HIDRÓGENO ESPIRADO", sT),
             Paragraph(
                 f"Estudio: {data.get('tipo_analisis', 'SIBO')} — Sustrato: {data.get('sustrato', '')}", sSu),
             Paragraph(f"Fecha: {fv.get('pac_fecha', TODAY)}", sSu),
@@ -198,7 +198,7 @@ def generate_pdf(data: dict,
                                  fontName="Helvetica-Bold" if bold else "Helvetica",
                                  alignment=TA_CENTER))
 
-    pr = [[phc("Tiempo"), phc("H2 (ppm)"), phc("CH4 (ppm)")]]
+    pr = [[phc("Tiempo"), phc("H₂ (ppm)"), phc("CH₄ (ppm)")]]
     for i, tl in enumerate(time_lbls):
         pr.append([
             phc(tl, DARK, False),
@@ -218,12 +218,12 @@ def generate_pdf(data: dict,
         ("TOPPADDING",    (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
-    story.append(Paragraph("VALORES PPM — H2 y CH4", sSH))
+    story.append(Paragraph("VALORES PPM — H₂ y CH₄", sSH))
     story.append(KeepTogether([
         pt, Spacer(1, 4),
         Paragraph(
-            f"<b>AUC H2:</b> {h2s} ppm·min &nbsp;|&nbsp; "
-            f"<b>AUC CH4:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
+            f"<b>AUC H₂:</b> {h2s} ppm·min &nbsp;|&nbsp; "
+            f"<b>AUC CH₄:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
             ps("_au", fontSize=9, textColor=DARK, alignment=TA_CENTER),
         ),
     ]))
@@ -295,9 +295,9 @@ def generate_pdf(data: dict,
     if data.get("ef_otros", "").strip():
         story.append(Paragraph(f"Otros: {data['ef_otros'].strip()}", sBo))
 
-    # ── Medicación POR AHORA SE SACA ───────────────────────────────────────────────────
-    # story += [Spacer(1, 6), Paragraph("MEDICACIÓN", sSH),
-    #          Paragraph(data.get("medicacion", "").strip() or "Sin registro.", sBo)]
+    # ── Medicación ───────────────────────────────────────────────────
+    # story += [Spacer(1,6), Paragraph("MEDICACIÓN", sSH),
+    #          Paragraph(data.get("medicacion","").strip() or "Sin registro.", sBo)]
 
     # ═══════════════════════════════════════════════════════════════
     # FIRMA — alineada al margen DERECHO

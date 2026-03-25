@@ -56,13 +56,9 @@ def show_login():
                     st.error("Ingresá tu correo y contraseña.")
                 else:
                     with st.spinner("Verificando..."):
-                        # user = auth.login(email, password)
-                        # Comentado para probar sin usuario
-                        user = True
+                        user = auth.login(email, password)
                     if user:
-                        # st.rerun()
-                        # Comentado para probar sin usuario
-                        user
+                        st.rerun()
                     else:
                         st.error("Credenciales incorrectas.")
 
@@ -117,7 +113,7 @@ def _build_pdf_data():
         "interpretacion": ss.get("interpretacion", ""),
         "ef_vars":        ef_vars,
         "ef_otros":       ss.get("ef_otros", ""),
-        # "medicacion":     ss.get("medicacion", ""),
+        "medicacion":     ss.get("medicacion", ""),
         "chart_bytes":    ss.get("chart_bytes"),
     }
 

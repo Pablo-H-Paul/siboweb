@@ -152,9 +152,9 @@ def render():
         with st.expander("**Profesional médico**", expanded=True):
             c1, c2 = st.columns(2)
             st.session_state["prof_nombre"] = c1.text_input(
-                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn", placeholder="Gastón")
+                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn")
             st.session_state["prof_apellido"] = c2.text_input(
-                "Apellido", value=st.session_state["prof_apellido"], key="_pa", placeholder="Ahualli")
+                "Apellido", value=st.session_state["prof_apellido"], key="_pa")
 
             esp_idx = ESPECIALIDADES.index(st.session_state["prof_esp"]) \
                 if st.session_state["prof_esp"] in ESPECIALIDADES else 0
@@ -163,9 +163,9 @@ def render():
 
             c3, c4 = st.columns(2)
             st.session_state["prof_mat"] = c3.text_input(
-                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm", placeholder="229654")
+                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm")
             st.session_state["prof_inst"] = c4.text_input(
-                "Institución", value=st.session_state["prof_inst"], key="_pi", placeholder="CIMEQ")
+                "Institución", value=st.session_state["prof_inst"], key="_pi")
 
         # ── Paciente ─────────────────────────────────────────────────
         with st.expander("**Datos del paciente**", expanded=True):
@@ -191,8 +191,8 @@ def render():
                 "Sexo", SEXOS, index=sexo_idx, key="_psexo")
 
             c5, c6 = st.columns(2)
-            c5.text_input("Edad (calculada)", value=st.session_state["pac_edad"],
-                          key="_pedad", disabled=True)
+            # c5.text_input("Edad (calculada)", value=st.session_state["pac_edad"],
+            #              key="_pedad", disabled=True)
 
             fecha_est = c6.text_input("Fecha del estudio (DD/MM/AAAA)",
                                       value=st.session_state["pac_fecha"],
@@ -207,42 +207,44 @@ def render():
                 value=st.session_state["pac_obra_social"], key="_pos")
 
         # ── Logo de la institución ────────────────────────────────────
-        # with st.expander("**Logo de la institución**", expanded=False):
-        #    logo_bytes = _load_asset(LOGO_PATH)
-        #    if logo_bytes:
-        #        st.image(logo_bytes, width=200)
-        #        st.caption(f"Logo cargado desde `assets/logo.png`")
-        #    else:
-        #        st.caption("No hay logo guardado. Subí uno a continuación.")
+        with st.expander("**Logo de la institución**", expanded=False):
+            logo_bytes = _load_asset(LOGO_PATH)
+            if logo_bytes:
+                st.image(logo_bytes, width=200)
+                st.caption(f"Logo cargado desde `assets/logo.png`")
+            else:
+                st.caption("No hay logo guardado. Subí uno a continuación.")
 
-        #    st.markdown("**Reemplazar logo:**")
-        #    logo_file = st.file_uploader(
-        #        "Subir logo (JPG, PNG)", type=["jpg","jpeg","png","webp","bmp"],
-        #        key="_logo_up", label_visibility="collapsed")
-        #    if logo_file:
-        #        data = logo_file.read()
-        #        _save_asset(LOGO_PATH, data)
-        #        st.success("Logo guardado en `assets/logo.png`. Se usará en todos los PDF.")
-        #        st.rerun()
+            st.markdown("**Reemplazar logo:**")
+            logo_file = st.file_uploader(
+                "Subir logo (JPG, PNG)", type=["jpg", "jpeg", "png", "webp", "bmp"],
+                key="_logo_up", label_visibility="collapsed")
+            if logo_file:
+                data = logo_file.read()
+                _save_asset(LOGO_PATH, data)
+                st.success(
+                    "Logo guardado en `assets/logo.png`. Se usará en todos los PDF.")
+                st.rerun()
 
         # ── Firma digital ─────────────────────────────────────────────
-        # with st.expander("**Firma digital del profesional**", expanded=False):
-        #    firma_bytes = _load_asset(FIRMA_PATH)
-        #    if firma_bytes:
-        #        st.image(firma_bytes, width=220)
-        #        st.caption(f"Firma cargada desde `assets/firma.png`")
-        #    else:
-        #        st.caption("No hay firma guardada. Subí una a continuación.")
+        with st.expander("**Firma digital del profesional**", expanded=False):
+            firma_bytes = _load_asset(FIRMA_PATH)
+            if firma_bytes:
+                st.image(firma_bytes, width=220)
+                st.caption(f"Firma cargada desde `assets/firma.png`")
+            else:
+                st.caption("No hay firma guardada. Subí una a continuación.")
 
-        #    st.markdown("**Reemplazar firma:**")
-        #    firma_file = st.file_uploader(
-        #        "Subir firma (JPG, PNG)", type=["jpg","jpeg","png"],
-        #        key="_firma_up", label_visibility="collapsed")
-        #    if firma_file:
-        #        data = firma_file.read()
-        #        _save_asset(FIRMA_PATH, data)
-        #        st.success("Firma guardada en `assets/firma.png`. Se usará en todos los PDF.")
-        #        st.rerun()
+            st.markdown("**Reemplazar firma:**")
+            firma_file = st.file_uploader(
+                "Subir firma (JPG, PNG)", type=["jpg", "jpeg", "png"],
+                key="_firma_up", label_visibility="collapsed")
+            if firma_file:
+                data = firma_file.read()
+                _save_asset(FIRMA_PATH, data)
+                st.success(
+                    "Firma guardada en `assets/firma.png`. Se usará en todos los PDF.")
+                st.rerun()
 
     # ═══════════════════════════════════════════
     # COL 2 — Síntomas + Análisis + Mediciones + PPM
