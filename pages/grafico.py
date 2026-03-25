@@ -88,9 +88,9 @@ def render():
     ch4s = f"{auc_ch4:.0f}" if auc_ch4 is not None else "—"
 
     # ── Métricas ─────────────────────────────────────────────────────
-    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1, mc3, mc4 = st.columns(4)
     mc1.metric("AUC H₂ (ppm·min)",  h2s)
-    mc2.metric("AUC CH₄ (ppm·min)", ch4s)
+    # mc2.metric("AUC CH₄ (ppm·min)", ch4s)
     mc3.metric("Umbral H₂",         f"{umbral} ppm")
     mc4.metric("Ref. H₂",           "1000–3000")
 
