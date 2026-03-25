@@ -44,8 +44,11 @@ def render():
                 s, value=st.session_state[f"ef_{i}_{s}"],
                 key=f"_ef_{i}_{j}", label_visibility="collapsed")
 
+    # st.divider()
+    # col_a, col_b = st.columns(2, gap="medium")
+
     st.divider()
-    col_a, col_b = st.columns(2, gap="medium")
+    col_a = st.columns(2, gap="medium")
 
     with col_a:
         st.markdown("#### Otros efectos adversos")
