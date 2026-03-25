@@ -5,7 +5,8 @@ Síntomas actualizados: Dolor Abdominal en lugar de Retortijones, sin Non GI.
 
 import streamlit as st
 
-EFECTOS = ["Flatulencia","Dolor Abdominal","Diarrea","Estreñimiento","Distensión"]
+EFECTOS = ["Flatulencia", "Dolor Abdominal",
+           "Diarrea", "Estreñimiento", "Distensión"]
 
 
 def _init_state():
@@ -13,16 +14,16 @@ def _init_state():
         for s in EFECTOS:
             st.session_state.setdefault(f"ef_{i}_{s}", False)
     st.session_state.setdefault("ef_otros",  "")
-    st.session_state.setdefault("medicacion","")
+    st.session_state.setdefault("medicacion", "")
 
 
 def render():
     _init_state()
 
-    n       = st.session_state.get("n_mediciones", 7)
-    iv      = st.session_state.get("intervalo",    30)
+    n = st.session_state.get("n_mediciones", 7)
+    iv = st.session_state.get("intervalo",    30)
     tiempos = [i * iv for i in range(n)]
-    tls     = [f"{t} min" for t in tiempos]
+    tls = [f"{t} min" for t in tiempos]
 
     st.markdown("#### Efectos adversos por intervalo")
 
@@ -52,8 +53,9 @@ def render():
             "Otros", value=st.session_state["ef_otros"],
             height=100, label_visibility="collapsed", key="_ef_otros")
 
-    with col_b:
-        st.markdown("#### Medicación del paciente")
-        st.session_state["medicacion"] = st.text_area(
-            "Medicación", value=st.session_state["medicacion"],
-            height=100, label_visibility="collapsed", key="_med")
+    # Remover medicación - no es necesario
+    # with col_b:
+    #    st.markdown("#### Medicación del paciente")
+    #    st.session_state["medicacion"] = st.text_area(
+    #        "Medicación", value=st.session_state["medicacion"],
+    #        height=100, label_visibility="collapsed", key="_med")

@@ -295,9 +295,9 @@ def generate_pdf(data: dict,
     if data.get("ef_otros", "").strip():
         story.append(Paragraph(f"Otros: {data['ef_otros'].strip()}", sBo))
 
-    # ── Medicación ───────────────────────────────────────────────────
-    story += [Spacer(1, 6), Paragraph("MEDICACIÓN", sSH),
-              Paragraph(data.get("medicacion", "").strip() or "Sin registro.", sBo)]
+    # ── Medicación POR AHORA SE SACA ───────────────────────────────────────────────────
+    # story += [Spacer(1, 6), Paragraph("MEDICACIÓN", sSH),
+    #          Paragraph(data.get("medicacion", "").strip() or "Sin registro.", sBo)]
 
     # ═══════════════════════════════════════════════════════════════
     # FIRMA — alineada al margen DERECHO

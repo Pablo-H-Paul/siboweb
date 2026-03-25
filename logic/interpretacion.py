@@ -22,20 +22,22 @@ def interpretar(
     def safe(lst):
         return [v for v in lst if v is not None]
 
-    h2  = safe(h2_vals)
+    h2 = safe(h2_vals)
     ch4 = safe(ch4_vals)
 
-    auc_h2  = calcular_auc(h2_vals, tiempos)
-    auc_ch4 = calcular_auc(ch4_vals, tiempos)
+    auc_h2 = calcular_auc(h2_vals, tiempos)
 
-    basal_h2  = h2[0]  if h2  else 0
+    # AUC sobre metano no se calcula
+    # auc_ch4 = calcular_auc(ch4_vals, tiempos)
+
+    basal_h2 = h2[0] if h2 else 0
     basal_ch4 = ch4[0] if ch4 else 0
 
-    h2_90   = [v for v, t in zip(h2_vals, tiempos) if v is not None and t <= 90]
+    h2_90 = [v for v, t in zip(h2_vals, tiempos) if v is not None and t <= 90]
     rise_h2 = (max(h2_90) - basal_h2) if h2_90 else 0
     peak_ch4 = (max(ch4) - basal_ch4) if ch4 else 0
 
-    h2s  = f"{auc_h2:.0f}"  if auc_h2  is not None else "N/D"
+    h2s = f"{auc_h2:.0f}" if auc_h2 is not None else "N/D"
     ch4s = f"{auc_ch4:.0f}" if auc_ch4 is not None else "N/D"
 
     t_low = tipo.lower()
@@ -50,7 +52,7 @@ def interpretar(
             "Se considera positivo el aumento de 20 ppm sobre la basal de "
             "hidrógeno o 12 ppm sobre la basal de metano.\n"
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
         )
         if pos:
             cpo += f"\n{CONSULTE}"
@@ -64,7 +66,7 @@ def interpretar(
             "Se considera positivo el aumento de 20 ppm sobre la basal de "
             "hidrógeno o 12 ppm sobre la basal de metano.\n"
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
         )
         if pos:
             cpo += f"\n{CONSULTE}"
@@ -90,16 +92,23 @@ def interpretar(
             "Se considera positivo el aumento de 12 ppm de H2 y/o 10 ppm sobre "
             "la basal de metano.\n"
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
         )
         if pos:
             cpo += f"\n{CONSULTE}"
         return "SIBO CON GLUCOSA", cpo, pos
 
     # SIBO LACTULOSA — 7 muestras cada 30 min
-    h2_pos  = rise_h2  >= umbral
+    h2_pos = rise_h2 >= 20
     ch4_pos = peak_ch4 >= 10
     auc_h2_val = auc_h2 if auc_h2 is not None else 0
+
+    if auc_h2_val > 3000:
+        auc_diag = "LA CURVA OBTENIDA ES POSITIVA PARA SOBRECRECIMIENTO BACTERIANO PARA FLORA MIXTA METANOGÉNICA E HIDROGENOGÉNICA"
+    elif auc_h2_val < 1000:
+        auc_diag = "LA CURVA OBTENIDA ES NEGATIVA PARA SOBRECRECIMIENTO BACTERIANO"
+    else:
+        auc_diag = "Sin observaciones, valor AUC dentro de parámetros normales"
 
     if h2_pos and ch4_pos:
         cpo = (
@@ -107,12 +116,11 @@ def interpretar(
             "hidrógeno durante los primeros 90 min o un valor mayor o igual a "
             "10 ppm de metano durante el estudio.\n"
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            #  f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
             f"\n{CONSULTE}"
         )
         return (
-            "LA CURVA OBTENIDA ES POSITIVA PARA SOBRECRECIMIENTO BACTERIANO "
-            "PARA FLORA MIXTA METANOGÉNICA E HIDROGENOGÉNICA",
+            auc_diag,
             cpo, True,
         )
 
@@ -121,7 +129,7 @@ def interpretar(
             "Se considera positivo un valor mayor o igual a 10 ppm de metano "
             "en cualquier determinación del estudio.\n"
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
             f"\n{CONSULTE}"
         )
         return (
@@ -138,18 +146,17 @@ def interpretar(
             f"\n{CONSULTE}"
         )
         return (
-            "LA CURVA OBTENIDA ES POSITIVA PARA SOBRECRECIMIENTO BACTERIANO "
-            "PARA FLORA HIDROGENOGÉNICA (SIBO)",
+            auc_diag,
             cpo, True,
         )
 
     if auc_h2_val > 3000:
         cpo = (
             f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-            f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+            # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
         )
         return (
-            "LA CURVA OBTENIDA ES COMPATIBLE CON PERFIL FERMENTATIVO AUMENTADO",
+            auc_diag,
             cpo, False,
         )
 
@@ -157,7 +164,7 @@ def interpretar(
         f"Se considera positivo el aumento de {umbral} ppm sobre la basal de "
         "hidrógeno durante los primeros 90 min.\n"
         f"AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.\n"
-        f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
+        # f"AUC CH4: {ch4s} ppm·min. Valor de referencia hasta 1000 ppm·min.\n"
     )
     return (
         "LA CURVA OBTENIDA ES NEGATIVA PARA SOBRECRECIMIENTO BACTERIANO. H2",
