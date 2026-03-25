@@ -83,9 +83,9 @@ def render():
     tls = [f"{t} min" for t in tiempos]
 
     auc_h2 = calcular_auc(h2_vals,  tiempos)
-    auc_ch4 = calcular_auc(ch4_vals, tiempos)
+    # auc_ch4 = calcular_auc(ch4_vals, tiempos)
     h2s = f"{auc_h2:.0f}" if auc_h2 is not None else "—"
-    ch4s = f"{auc_ch4:.0f}" if auc_ch4 is not None else "—"
+    # ch4s = f"{auc_ch4:.0f}" if auc_ch4 is not None else "—"
 
     # ── Métricas ─────────────────────────────────────────────────────
     mc1, mc3, mc4 = st.columns(3)
@@ -95,9 +95,9 @@ def render():
     mc4.metric("Ref. H₂",           "1000–3000")
 
     # ── Interpretación automática ────────────────────────────────────
-    if any(v is not None for v in h2_vals + ch4_vals):
+    if any(v is not None for v in h2_vals):  # ch4_vals
         tit, cpo, pos = interpretar(
-            h2_vals, ch4_vals,
+            h2_vals,  # ch4_vals,
             st.session_state.get("tipo_analisis", "SIBO"),
             st.session_state.get("sustrato",      "Lactulosa"),
             tiempos, umbral,
@@ -117,8 +117,8 @@ def render():
                         st.write(line)
 
     # ── Gráfico ──────────────────────────────────────────────────────
-    if any(v is not None for v in h2_vals + ch4_vals):
-        chart_bytes = _build_chart(h2_vals, ch4_vals, tiempos, umbral, tls)
+    if any(v is not None for v in h2_vals):  # + ch4_vals
+        chart_bytes = _build_chart(h2_vals,  tiempos, umbral, tls)  # ch4_vals,
         st.session_state["chart_bytes"] = chart_bytes   # para el PDF
         st.image(chart_bytes, use_container_width=True)
     else:
