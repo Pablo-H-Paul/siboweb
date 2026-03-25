@@ -176,7 +176,7 @@ def show_app():
 
     tab1, tab2, tab3 = st.tabs([
         "  Datos y valores  ",
-        "  Efectos y medicación  ",
+        "  Efectos  ",
         "  Gráfico y AUC  ",
     ])
     with tab1:
