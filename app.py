@@ -117,7 +117,7 @@ def _build_pdf_data():
         "interpretacion": ss.get("interpretacion", ""),
         "ef_vars":        ef_vars,
         "ef_otros":       ss.get("ef_otros", ""),
-        "medicacion":     ss.get("medicacion", ""),
+        # "medicacion":     ss.get("medicacion", ""),
         "chart_bytes":    ss.get("chart_bytes"),
     }
 

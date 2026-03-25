@@ -14,7 +14,7 @@ def _init_state():
         for s in EFECTOS:
             st.session_state.setdefault(f"ef_{i}_{s}", False)
     st.session_state.setdefault("ef_otros",  "")
-    st.session_state.setdefault("medicacion", "")
+    # st.session_state.setdefault("medicacion", "")
 
 
 def render():
