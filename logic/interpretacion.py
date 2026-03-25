@@ -99,7 +99,7 @@ def interpretar(
         return "SIBO CON GLUCOSA", cpo, pos
 
     # SIBO LACTULOSA — 7 muestras cada 30 min
-    h2_pos = rise_h2 >= 20
+    h2_pos = rise_h2 >= {umbral}
     ch4_pos = peak_ch4 >= 10
     auc_h2_val = auc_h2 if auc_h2 is not None else 0
 
