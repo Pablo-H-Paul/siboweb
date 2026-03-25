@@ -47,9 +47,6 @@ def render():
     # st.divider()
     # col_a, col_b = st.columns(2, gap="medium")
 
-    st.divider()
-    col_a = st.columns(2, gap="medium")
-
     with col_a:
         st.markdown("#### Otros efectos adversos")
         st.session_state["ef_otros"] = st.text_area(
