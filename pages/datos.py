@@ -152,9 +152,9 @@ def render():
         with st.expander("**Profesional médico**", expanded=True):
             c1, c2 = st.columns(2)
             st.session_state["prof_nombre"] = c1.text_input(
-                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn")
+                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn", placeholder="Julián Gastón")
             st.session_state["prof_apellido"] = c2.text_input(
-                "Apellido", value=st.session_state["prof_apellido"], key="_pa")
+                "Apellido", value=st.session_state["prof_apellido"], key="_pa", placeholder="Ahualli")
 
             esp_idx = ESPECIALIDADES.index(st.session_state["prof_esp"]) \
                 if st.session_state["prof_esp"] in ESPECIALIDADES else 0
@@ -163,7 +163,7 @@ def render():
 
             c3, c4 = st.columns(2)
             st.session_state["prof_mat"] = c3.text_input(
-                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm")
+                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm", placeholder="MN: 128.019 - MP: 229.654")
             st.session_state["prof_inst"] = c4.text_input(
                 "Institución", value=st.session_state["prof_inst"], key="_pi")
 
