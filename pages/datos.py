@@ -332,14 +332,14 @@ def render():
                     f"{iv_def} min · umbral {umb_def} ppm")
 
         # ── Valores PPM ──────────────────────────────────────────────
-        with st.expander("**Valores PPM — H₂ y CH₄**", expanded=True):
+        with st.expander("**Valores PPM — H2 y CH4**", expanded=True):
             tiempos = [i * iv for i in range(n)]
             tls = [f"{t} min" for t in tiempos]
 
             hc = st.columns([2, 2, 2])
             hc[0].markdown("**Tiempo**")
-            hc[1].markdown("**H₂ (ppm)**")
-            hc[2].markdown("**CH₄ (ppm)**")
+            hc[1].markdown("**H2 (ppm)**")
+            hc[2].markdown("**CH4 (ppm)**")
             st.divider()
 
             for i in range(n):

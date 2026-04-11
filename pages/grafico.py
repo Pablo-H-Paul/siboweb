@@ -46,11 +46,11 @@ def _build_chart(h2_vals, ch4_vals, tiempos, umbral, tls) -> bytes:
 
     if h2x:
         ax.plot(h2x, h2y, "o-", color=H2_COLOR,
-                lw=2.2, ms=7, label="H₂",  zorder=3)
+                lw=2.2, ms=7, label="H2",  zorder=3)
         ax.fill_between(h2x, h2y, alpha=0.08, color=H2_COLOR)
     if ch4x:
         ax.plot(ch4x, ch4y, "s-", color=CH4_COLOR,
-                lw=2.2, ms=7, label="CH₄", zorder=3)
+                lw=2.2, ms=7, label="CH4", zorder=3)
         ax.fill_between(ch4x, ch4y, alpha=0.08, color=CH4_COLOR)
 
     ax.axhline(umbral, color=UMBRAL_COLOR, ls="--", lw=1.4,
@@ -87,9 +87,9 @@ def render():
 
     # ── Métricas ─────────────────────────────────────────────────────
     mc1, mc2, mc3 = st.columns(3)
-    mc1.metric("AUC H₂ (ppm·min)", h2s)
-    mc2.metric("Umbral H₂",        f"{umbral} ppm")
-    mc3.metric("Ref. H₂",          "1000–3000")
+    mc1.metric("AUC H2 (ppm·min)", h2s)
+    mc2.metric("Umbral H2",        f"{umbral} ppm")
+    mc3.metric("Ref. H2",          "1000–3000")
 
     # ── Interpretación automática ────────────────────────────────────
     if any(v is not None for v in h2_vals + ch4_vals):
