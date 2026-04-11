@@ -80,8 +80,8 @@ def _save_asset(path: Path, data: bytes):
 
 def _init_state():
     defaults = {
-        "prof_nombre": "", "prof_apellido": "", "prof_esp": "Gastroenterología",
-        "prof_mat": "", "prof_inst": "", "prof_email": "", "prof_tel": "",
+        "prof_nombre": "Julián Gastón", "prof_apellido": "Ahualli", "prof_esp": "Gastroenterología",
+        "prof_mat": "MN: 128.019 - MP: 229.654", "prof_inst": "CIMEQ", "prof_email": "", "prof_tel": "",
         "pac_nombre": "", "pac_apellido": "",
         "pac_fnac": "", "pac_edad": "", "pac_sexo": "Femenino",
         "pac_fecha": TODAY, "pac_obra_social": "",
@@ -165,7 +165,7 @@ def render():
             st.session_state["prof_mat"] = c3.text_input(
                 "Matrícula",   value=st.session_state["prof_mat"],  key="_pm", placeholder="MN: 128.019 - MP: 229.654")
             st.session_state["prof_inst"] = c4.text_input(
-                "Institución", value=st.session_state["prof_inst"], key="_pi")
+                "Institución", value=st.session_state["prof_inst"], key="_pi", placeholder="CIMEQ")
 
         # ── Paciente ─────────────────────────────────────────────────
         with st.expander("**Datos del paciente**", expanded=True):

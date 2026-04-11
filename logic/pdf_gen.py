@@ -222,8 +222,8 @@ def generate_pdf(data: dict,
     story.append(KeepTogether([
         pt, Spacer(1, 4),
         Paragraph(
-            f"<b>AUC H₂:</b> {h2s} ppm·min &nbsp;|&nbsp; "
-            f"<b>AUC CH₄:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
+            f"<b>AUC H2:</b> {h2s} ppm·min &nbsp;|&nbsp; "
+            f"<b>AUC CH4:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
             ps("_au", fontSize=9, textColor=DARK, alignment=TA_CENTER),
         ),
     ]))
