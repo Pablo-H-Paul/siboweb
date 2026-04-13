@@ -59,12 +59,12 @@ TIPO_INFO = {
 
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
-OBRAS_SOCIALES = sorted([
-    "Particular", "OSDE", "Swiss Medical", "A.P.M / OSAPM", "ACTIVA SALUD",
-    "ANDAR", "APRES", "APSOT / FFST", "ASMEPRIV", "ASSISTRAVEL", "AVALIAN",
-    "BCO. PCIA. (AMEBPBA)", "BRISTOL / STA. CECILIA", "C.A.S.A",
-    "C.M.PUEYRREDON", "CEMIC", "CIMA", "COBERMED",
-    "COBERTEC / OS MOSAISTAS", "COLEGIO DE ESCRIBANOS",
+_OS_TOP = ["OSDE", "Particular", "Swiss Medical"]
+_OS_REST = sorted([o for o in [
+    "A.P.M / OSAPM", "ACTIVA SALUD", "ANDAR", "APRES", "APSOT / FFST",
+    "ASMEPRIV", "ASSISTRAVEL", "AVALIAN", "BCO. PCIA. (AMEBPBA)",
+    "BRISTOL / STA. CECILIA", "C.A.S.A", "C.M.PUEYRREDON", "CEMIC", "CIMA",
+    "COBERMED", "COBERTEC / OS MOSAISTAS", "COLEGIO DE ESCRIBANOS",
     "COMEDICA (Plan especial OSSEG)", "COMEI", "CORPORACIÓN ASISTENCIAL",
     "DASMI - UNIV. DE LUJÁN", "DOM CENTRO DE REUMATOLOGÍA", "EMERGENCIAS",
     "EMPLEADOS DE FARMACIA",
@@ -86,28 +86,19 @@ OBRAS_SOCIALES = sorted([
     "PREVENCIÓN SALUD", "PRIVAMED",
     "PROME (PROTECCIÓN MÉDICA ESCOLAR)", "PROSAL SALUD",
     "QUÍMICOS DE CAMPANA Y ZÁRATE", "RAS",
-    "RED TOTAL - CONSULT RENT - MGN SALUD",
-    "RED PRESTACIONAL - DOSUBA",
+    "RED TOTAL - CONSULT RENT - MGN SALUD", "RED PRESTACIONAL - DOSUBA",
     "ROISA (IPROSS, OSMISS, OSYC, DOCTORED)", "SADAIC",
     "SAIS - GESTIÓN SALUD (OSDOP)", "SAMI MATANZA",
     "SANCOR SALUD / STAFF MÉDICO", "SEGUROS (OSSEG)", "SEMPRE LA PAMPA",
     "SMAI", "SALUD PLENA (AMTCIA-MOA-OSPICA-OSPM MARÍTIMOS-VESALIO SALUD)",
     "TIEMPO MÉDICO", "TV SALUD", "UAI SALUD",
     "UNION PERSONAL / ACCORD SALUD", "VIA MÉDICA (OS FUTBOLISTAS)",
-])
+] if o not in _OS_TOP])
+OBRAS_SOCIALES = _OS_TOP + _OS_REST
 
 
-def _format_date_input(raw: str) -> str:
-    """
-    Toma dígitos ingresados por el usuario y devuelve DD/MM/AAAA con las
-    barras insertadas automáticamente. Ej: "25031985" → "25/03/1985".
-    """
-    digits = "".join(c for c in raw if c.isdigit())[:8]
-    if len(digits) <= 2:
-        return digits
-    if len(digits) <= 4:
-        return f"{digits[:2]}/{digits[2:]}"
-    return f"{digits[:2]}/{digits[2:4]}/{digits[4:]}"
+
+
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
@@ -227,96 +218,89 @@ def render():
 
             c3, c4 = st.columns(2)
 
-            # Fecha de nacimiento — formato automático al escribir dígitos
-            fnac_raw = c3.text_input(
-                "Fecha de nacimiento",
+            # Fecha de nacimiento — ingreso manual DD/MM/AAAA
+            fnac = c3.text_input(
+                "Fecha de nacimiento (DD/MM/AAAA)",
                 value=st.session_state["pac_fnac"],
-                key="_pfnac", placeholder="DD/MM/AAAA",
-                help="Ingresá los dígitos y las barras se agregan solas")
-            fnac_fmt = _format_date_input(fnac_raw)
-            if fnac_fmt != fnac_raw:
-                st.session_state["pac_fnac"] = fnac_fmt
-                st.rerun()
+                key="_pfnac", placeholder="25/03/1985")
+            if not _validate_date(fnac):
+                c3.error("Formato inválido — DD/MM/AAAA")
             else:
-                if not _validate_date(fnac_fmt):
-                    c3.error("Formato inválido — DD/MM/AAAA")
-                else:
-                    st.session_state["pac_fnac"] = fnac_fmt
-                    st.session_state["pac_edad"] = _calc_edad(fnac_fmt)
+                st.session_state["pac_fnac"] = fnac
+                st.session_state["pac_edad"] = _calc_edad(fnac)
 
             sexo_idx = SEXOS.index(st.session_state["pac_sexo"]) \
                 if st.session_state["pac_sexo"] in SEXOS else 0
             st.session_state["pac_sexo"] = c4.selectbox(
                 "Sexo", SEXOS, index=sexo_idx, key="_psexo")
 
-            c5, c6 = st.columns(2)
-
-            fecha_est = c5.text_input("Fecha del estudio",
-                                      value=st.session_state["pac_fecha"],
-                                      key="_pfecha", placeholder=TODAY,
-                                      help="DD/MM/AAAA")
-            fecha_est_fmt = _format_date_input(fecha_est)
-            if fecha_est_fmt != fecha_est:
-                st.session_state["pac_fecha"] = fecha_est_fmt
-                st.rerun()
+            c5, _ = st.columns(2)
+            fecha_est = c5.text_input(
+                "Fecha del estudio (DD/MM/AAAA)",
+                value=st.session_state["pac_fecha"],
+                key="_pfecha", placeholder=TODAY)
+            if not _validate_date(fecha_est):
+                c5.error("Formato inválido — DD/MM/AAAA")
             else:
-                if not _validate_date(fecha_est_fmt):
-                    c5.error("Formato inválido — DD/MM/AAAA")
-                else:
-                    st.session_state["pac_fecha"] = fecha_est_fmt
+                st.session_state["pac_fecha"] = fecha_est
 
             # Obra Social — buscador predictivo con opción de agregar nuevas
             st.markdown("**Obra Social / Prepaga**")
-            os_key = "_os_search"
-            os_val = st.session_state.get("pac_obra_social", "")
-
             os_search = st.text_input(
                 "Buscar obra social",
-                value=os_val,
-                key=os_key,
+                value=st.session_state.get("_os_search_txt", ""),
+                key="_os_search_txt",
                 placeholder="Escribí para buscar o agregar...",
                 label_visibility="collapsed",
             )
 
-            # Filtrar opciones según lo que escribe
-            if os_search.strip():
-                filtered = [o for o in OBRAS_SOCIALES
-                            if os_search.lower() in o.lower()]
+            term = os_search.strip()
+            if term:
+                filtered = [o for o in OBRAS_SOCIALES if term.lower() in o.lower()]
             else:
                 filtered = OBRAS_SOCIALES
 
             if filtered:
-                # Mostrar hasta 8 sugerencias como radio buttons
                 show = filtered[:8]
-                # Si el valor actual ya está en la lista, preseleccionarlo
-                cur_idx = show.index(os_val) if os_val in show else None
-                if os_search and os_search not in OBRAS_SOCIALES:
-                    show = [f'➕ Agregar "{os_search}"'] + show[:7]
-                    cur_idx = None
+                # Opción de agregar si no coincide exactamente con ninguna
+                options = show[:]
+                if term and term not in OBRAS_SOCIALES and not any(
+                        o.lower() == term.lower() for o in OBRAS_SOCIALES):
+                    options = [f'➕ Agregar "{term}"'] + show[:7]
+
+                cur = st.session_state.get("pac_obra_social", "")
+                cur_idx = options.index(cur) if cur in options else 0
 
                 choice = st.radio(
-                    "Seleccioná una opción",
-                    show,
+                    "Seleccioná",
+                    options,
                     index=cur_idx,
-                    key="_os_radio",
+                    key=f"_os_radio_{term}",   # key cambia con el término → sin stale state
                     label_visibility="collapsed",
                 )
-                if choice:
-                    if choice.startswith("➕ Agregar"):
-                        # Agregar a la lista en memoria y seleccionar
-                        OBRAS_SOCIALES.append(os_search)
-                        OBRAS_SOCIALES.sort()
-                        st.session_state["pac_obra_social"] = os_search
-                    else:
-                        st.session_state["pac_obra_social"] = choice
+                if choice and choice.startswith("➕ Agregar"):
+                    OBRAS_SOCIALES.append(term)
+                    # Mantener los top 3 fijos, reordenar el resto
+                    rest = sorted([o for o in OBRAS_SOCIALES if o not in _OS_TOP])
+                    OBRAS_SOCIALES[:] = _OS_TOP + rest
+                    st.session_state["pac_obra_social"] = term
+                    st.session_state["_os_search_txt"] = term
+                elif choice and not choice.startswith("➕"):
+                    st.session_state["pac_obra_social"] = choice
             else:
-                st.caption("No se encontraron coincidencias.")
-                if os_search.strip():
-                    if st.button(f'➕ Agregar "{os_search}"', key="_os_add"):
-                        OBRAS_SOCIALES.append(os_search)
-                        OBRAS_SOCIALES.sort()
-                        st.session_state["pac_obra_social"] = os_search
+                st.caption("Sin coincidencias.")
+                if term:
+                    if st.button(f'➕ Agregar "{term}"', key="_os_add"):
+                        OBRAS_SOCIALES.append(term)
+                        rest = sorted([o for o in OBRAS_SOCIALES if o not in _OS_TOP])
+                        OBRAS_SOCIALES[:] = _OS_TOP + rest
+                        st.session_state["pac_obra_social"] = term
                         st.rerun()
+
+            # Mostrar selección actual
+            cur_os = st.session_state.get("pac_obra_social", "")
+            if cur_os:
+                st.caption(f"✔ Seleccionada: **{cur_os}**")
 
         # ── Logo de la institución ────────────────────────────────────
         with st.expander("**Logo de la institución**", expanded=False):

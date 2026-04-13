@@ -126,31 +126,43 @@ def show_app():
 
     hc1, hc2 = st.columns([5, 3])
     with hc1:
-        st.markdown(f"""
+        hh1, hh2 = st.columns([4, 1])
+        hh1.markdown(f"""
         <div style="background:#1E3A5F;color:white;padding:10px 16px;
                     border-radius:8px;margin-bottom:0.8rem">
             <span style="font-size:1rem;font-weight:500">⚕ SIBO Analyzer</span>
             <span style="font-size:0.8rem;color:#94A3B8;margin-left:12px">{email}</span>
         </div>""", unsafe_allow_html=True)
+        with hh2:
+            st.markdown("<div style='margin-top:4px'>", unsafe_allow_html=True)
+            if st.button("Salir", width='stretch'):
+                auth.logout()
+                st.rerun()
 
     with hc2:
         st.markdown("<div style='margin-top:4px'>", unsafe_allow_html=True)
-        bc1, bc2, bc3, bc4 = st.columns(4)
+        bc1, bc2, bc3 = st.columns(3)
 
-        # Generar PDF — logo y firma se cargan automáticamente desde assets/
+        # Generar PDF
         if bc1.button("📄 PDF", width='stretch', type="primary"):
-            try:
-                data = _build_pdf_data()
-                # Logo y firma: generate_pdf los carga desde assets/ por defecto
-                pdf_bytes = generate_pdf(data)
-                apellido = st.session_state.get(
-                    "pac_apellido", "informe").replace(" ", "_")
-                filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-                st.session_state["_pdf_bytes"] = pdf_bytes
-                st.session_state["_pdf_filename"] = filename
-                st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
-            except Exception as e:
-                st.error(f"Error al generar PDF: {e}")
+            errors = pg_datos.validate_required_fields()
+            if errors:
+                st.error(
+                    "**No se puede generar el PDF. Faltan datos obligatorios:**\n"
+                    + "\n".join(f"• {e}" for e in errors)
+                )
+            else:
+                try:
+                    data = _build_pdf_data()
+                    pdf_bytes = generate_pdf(data)
+                    apellido = st.session_state.get(
+                        "pac_apellido", "informe").replace(" ", "_")
+                    filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+                    st.session_state["_pdf_bytes"] = pdf_bytes
+                    st.session_state["_pdf_filename"] = filename
+                    st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
+                except Exception as e:
+                    st.error(f"Error al generar PDF: {e}")
 
         if st.session_state.get("_pdf_bytes"):
             bc2.download_button(
@@ -161,15 +173,21 @@ def show_app():
                 width='stretch',
             )
 
+        # Limpiar — preserva datos del profesional, borra todo lo demás
         if bc3.button("Limpiar", width='stretch'):
-            preserve = {"_pdf_bytes", "_pdf_filename"}
-            for k in [k for k in st.session_state if k not in preserve]:
-                del st.session_state[k]
+            PRESERVE_PROF = {
+                "prof_nombre", "prof_apellido", "prof_esp",
+                "prof_mat", "prof_inst", "prof_email", "prof_tel",
+                "user", "access_token",
+            }
+            saved = {k: st.session_state[k]
+                     for k in PRESERVE_PROF if k in st.session_state}
+            st.session_state.clear()
+            st.session_state.update(saved)
             st.rerun()
 
-        if bc4.button("Salir", width='stretch'):
-            auth.logout()
-            st.rerun()
+
+
 
     tab1, tab2, tab3 = st.tabs([
         "  Datos y valores  ",
