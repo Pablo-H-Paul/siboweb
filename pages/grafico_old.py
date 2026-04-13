@@ -2,6 +2,7 @@
 Pestaña 3 — Gráfico & AUC
 """
 
+from logic.interpretacion import interpretar
 from logic.auc import calcular_auc
 import matplotlib.pyplot as plt
 import io
@@ -90,16 +91,36 @@ def render():
     mc2.metric("Umbral H2",        f"{umbral} ppm")
     mc3.metric("Ref. H2",          "1000–3000")
 
-    # ── Diagnóstico a completar por el profesional ───────────────────
-    st.session_state.setdefault("diagnostico", "")
-    st.markdown("#### Diagnóstico")
-    st.session_state["diagnostico"] = st.text_area(
-        "Ingresá o pegá el diagnóstico del profesional",
-        value=st.session_state["diagnostico"],
-        height=120,
-        key="_diagnostico",
-        placeholder="Escribí o pegá aquí el diagnóstico clínico...",
-    )
+    # ── Interpretación automática ────────────────────────────────────
+    if any(v is not None for v in h2_vals + ch4_vals):
+        tit, cpo, pos = interpretar(
+            h2_vals, ch4_vals,
+            st.session_state.get("tipo_analisis", "SIBO"),
+            st.session_state.get("sustrato",      "Lactulosa"),
+            tiempos, umbral,
+        )
+        if pos:
+            st.error(f"**{tit}**")
+        else:
+            st.success(f"**{tit}**")
+
+        # ── Diagnostico a completar por el profesional ───────────────────────────────────────────
+        with st.expander("**Diagnóstico - a completar por el profesional**",
+                         expanded=False):
+            st.session_state["diagnostico"] = st.text_area(
+                "Observaciones",
+                value=st.session_state["diagnostico"],
+                height=80, key="_diagnostico",
+                label_visibility="collapsed")
+
+        # with st.expander("Ver detalle de la interpretación"):
+        #    for line in cpo.strip().split("\n"):
+        #        line = line.strip()
+        #        if line:
+        #            if "CONSULTE" in line.upper():
+        #                st.warning(line)
+        #            else:
+        #                st.write(line)
 
     # ── Gráfico ──────────────────────────────────────────────────────
     if any(v is not None for v in h2_vals + ch4_vals):

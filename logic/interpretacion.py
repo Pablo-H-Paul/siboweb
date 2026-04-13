@@ -102,6 +102,8 @@ def interpretar(
     ch4_pos = peak_ch4 >= 10
     auc_h2_val = auc_h2 if auc_h2 is not None else 0
 
+    marca = False
+
     cpo = ""
     cpo_auc = ""
 
@@ -109,6 +111,8 @@ def interpretar(
         cpo = (
             f"LA CURVA OBTENIDA ES POSITIVA PARA SOBRECRECIMIENTO BACTERIANO PARA FLORA MIXTA METANOGÉNICA E HIDROGENOGÉNICA"
         )
+        marca = True
+
     if not h2_pos and not ch4_pos:
         cpo = (
             f"LA CURVA OBTENIDA ES NEGATIVA PARA SOBRECRECIMIENTO BACTERIANO. H2"
@@ -118,16 +122,19 @@ def interpretar(
         cpo = (
             f"LA CURVA OBTENIDA ES COMPATIBLE CON IMO (Sobrecrecimiento Metanogénico Intestinal)"
         )
+        marca = True
 
     if h2_pos and not ch4_pos:
         cpo = (
             f"LA CURVA OBTENIDA ES POSITIVA PARA SOBRECRECIMIENTO BACTERIANO PARA FLORA HIDROGENOGÉNICA (SIBO)"
         )
+        marca = True
 
     if auc_h2_val > 3000:
         cpo_auc = (
             f"\n AUC H2: {h2s} ppm·min. Valor de referencia 1000-3000 ppm·min.LA CURVA OBTENIDA ES COMPATIBLE CON PERFIL FERMENTATIVO AUMENTADO"
         )
+        marca = True
     elif (auc_h2_val < 1000) and not (ch4_pos and not h2_pos):
         cpo_auc = (
             "LA CURVA OBTENIDA ES NEGATIVA PARA SOBRECRECIMIENTO BACTERIANO."
@@ -140,10 +147,11 @@ def interpretar(
     cpo = cpo + "\n" + cpo_auc
 
     return (
+        cpo,
         f"Se considera positivo el aumento de {umbral} ppm sobre la basal de "
         "hidrógeno durante los primeros 90 min o un valor mayor o igual a "
         "10 ppm de metano durante el estudio.\n"
 
         f"\n{CONSULTE}\n",
-        cpo,
-        False)
+
+        marca)
