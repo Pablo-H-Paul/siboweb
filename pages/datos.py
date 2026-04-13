@@ -59,6 +59,56 @@ TIPO_INFO = {
 
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
+OBRAS_SOCIALES = sorted([
+    "Particular", "OSDE", "Swiss Medical", "A.P.M / OSAPM", "ACTIVA SALUD",
+    "ANDAR", "APRES", "APSOT / FFST", "ASMEPRIV", "ASSISTRAVEL", "AVALIAN",
+    "BCO. PCIA. (AMEBPBA)", "BRISTOL / STA. CECILIA", "C.A.S.A",
+    "C.M.PUEYRREDON", "CEMIC", "CIMA", "COBERMED",
+    "COBERTEC / OS MOSAISTAS", "COLEGIO DE ESCRIBANOS",
+    "COMEDICA (Plan especial OSSEG)", "COMEI", "CORPORACIÓN ASISTENCIAL",
+    "DASMI - UNIV. DE LUJÁN", "DOM CENTRO DE REUMATOLOGÍA", "EMERGENCIAS",
+    "EMPLEADOS DE FARMACIA",
+    "ENSALUD (DELTA-KRONO-QUANTUM-OSOETSYL-OSPICAL-OSPIHMP-OSPIM MOLINEROS-OSIAD-FOSDIC-OSPINENDOCTER)",
+    "FEDERADA SALUD", "FEMEDICA", "FRESENIUS", "GALENO",
+    "HEALTH MEDICAL / OSSIMRA", "HOPE", "HOSPITAL ALEMÁN", "HOSPITAL BRITÁNICO",
+    "HOSPITAL SIRIO LIBANES", "INST. SEGUROS DE JUJUY", "IOSFA", "JARDINEROS O.S.",
+    "LA PEQUEÑA FAMILIA", "LUIS PASTEUR", "LUZ Y FUERZA",
+    "MEDICAL CORPORATIVE TRADE",
+    "MEDICAL'S - MEDIN - Pro.Sa - PROMED - GENESEN - SEMESA",
+    "MEDICENTER", "MEDICUS", "MEDIFE", "MEDITAR",
+    "M&C SALUD / OS OSPACA", "O.S.P.U.N.C.P.B.A.", "OBSBA", "OMINT", "OPDEA",
+    "OSAM - PERGAMINO", "OSAP - ACEROS PARANÁ", "OSDEM", "OSDEPYM", "OSDIPP",
+    "OSFE", "OSMITA", "OSPE - OSPE APROSS Y OSPE PMO", "OSPEDYC", "OSPESGYPE",
+    "OSPETAX", "OSPESA", "OSPIDA", "OSPIA", "OSPIL", "OSPIT - Textiles",
+    "OSPIT - TABACALEROS", "OSPOCE / AMCI / INTEGRAL", "OSPREM", "OSTECF",
+    "PASTELEROS", "PERSONAL MUNICIPALIDAD DE LA MATANZA", "PODER JUDICIAL",
+    "PREMEDIC", "PRESTADORES DE SALUD - SALUD DEL NUEVO ROSARIO",
+    "PREVENCIÓN SALUD", "PRIVAMED",
+    "PROME (PROTECCIÓN MÉDICA ESCOLAR)", "PROSAL SALUD",
+    "QUÍMICOS DE CAMPANA Y ZÁRATE", "RAS",
+    "RED TOTAL - CONSULT RENT - MGN SALUD",
+    "RED PRESTACIONAL - DOSUBA",
+    "ROISA (IPROSS, OSMISS, OSYC, DOCTORED)", "SADAIC",
+    "SAIS - GESTIÓN SALUD (OSDOP)", "SAMI MATANZA",
+    "SANCOR SALUD / STAFF MÉDICO", "SEGUROS (OSSEG)", "SEMPRE LA PAMPA",
+    "SMAI", "SALUD PLENA (AMTCIA-MOA-OSPICA-OSPM MARÍTIMOS-VESALIO SALUD)",
+    "TIEMPO MÉDICO", "TV SALUD", "UAI SALUD",
+    "UNION PERSONAL / ACCORD SALUD", "VIA MÉDICA (OS FUTBOLISTAS)",
+])
+
+
+def _format_date_input(raw: str) -> str:
+    """
+    Toma dígitos ingresados por el usuario y devuelve DD/MM/AAAA con las
+    barras insertadas automáticamente. Ej: "25031985" → "25/03/1985".
+    """
+    digits = "".join(c for c in raw if c.isdigit())[:8]
+    if len(digits) <= 2:
+        return digits
+    if len(digits) <= 4:
+        return f"{digits[:2]}/{digits[2:]}"
+    return f"{digits[:2]}/{digits[2:4]}/{digits[4:]}"
+
 
 # ── Helpers ─────────────────────────────────────────────────────────
 
@@ -135,59 +185,6 @@ def _tipo_changed(tipo, sustrato):
             sustrato != st.session_state.get("_prev_sust", ""))
 
 
-# ── Validación pública (usada por app.py antes de generar PDF) ───────
-
-def validate_required_fields() -> list[str]:
-    """
-    Retorna lista de errores. Lista vacía = todo OK.
-    Verifica campos obligatorios del paciente y que al menos una columna PPM
-    esté completa.
-    """
-    ss = st.session_state
-    errors = []
-
-    pac_fields = [
-        ("pac_nombre",      "Nombre del paciente"),
-        ("pac_apellido",    "Apellido del paciente"),
-        ("pac_fnac",        "Fecha de nacimiento"),
-        ("pac_sexo",        "Sexo"),
-        ("pac_obra_social", "Obra Social / Prepaga"),
-    ]
-    for key, label in pac_fields:
-        if not ss.get(key, "").strip():
-            errors.append(label)
-
-    n = ss.get("n_mediciones", 7)
-    h2_complete = all(ss.get(f"h2_{i}", "").strip() != "" for i in range(n))
-    ch4_complete = all(ss.get(f"ch4_{i}", "").strip() != "" for i in range(n))
-    if not h2_complete and not ch4_complete:
-        errors.append("Valores PPM (al menos H2 o CH4 completo)")
-
-    return errors
-
-
-def _show_patient_validation():
-    """Muestra advertencia inline si faltan campos obligatorios del paciente."""
-    ss = st.session_state
-    missing = []
-    for key, label in [
-        ("pac_nombre",      "Nombre"),
-        ("pac_apellido",    "Apellido"),
-        ("pac_fnac",        "Fecha de nacimiento"),
-        ("pac_sexo",        "Sexo"),
-        ("pac_obra_social", "Obra Social / Prepaga"),
-    ]:
-        if not ss.get(key, "").strip():
-            missing.append(label)
-
-    if missing:
-        st.warning(
-            "⚠ **Datos del paciente incompletos:** "
-            + ", ".join(missing)
-            + ". Estos campos son obligatorios para generar el PDF."
-        )
-
-
 # ── Render ──────────────────────────────────────────────────────────
 
 def render():
@@ -229,14 +226,23 @@ def render():
                 "Apellido", value=st.session_state["pac_apellido"], key="_pca")
 
             c3, c4 = st.columns(2)
-            fnac = c3.text_input("Fecha de nacimiento (DD/MM/AAAA)",
-                                 value=st.session_state["pac_fnac"],
-                                 key="_pfnac", placeholder="25/03/1985")
-            if not _validate_date(fnac):
-                c3.error("Formato inválido — DD/MM/AAAA")
+
+            # Fecha de nacimiento — formato automático al escribir dígitos
+            fnac_raw = c3.text_input(
+                "Fecha de nacimiento",
+                value=st.session_state["pac_fnac"],
+                key="_pfnac", placeholder="DD/MM/AAAA",
+                help="Ingresá los dígitos y las barras se agregan solas")
+            fnac_fmt = _format_date_input(fnac_raw)
+            if fnac_fmt != fnac_raw:
+                st.session_state["pac_fnac"] = fnac_fmt
+                st.rerun()
             else:
-                st.session_state["pac_fnac"] = fnac
-                st.session_state["pac_edad"] = _calc_edad(fnac)
+                if not _validate_date(fnac_fmt):
+                    c3.error("Formato inválido — DD/MM/AAAA")
+                else:
+                    st.session_state["pac_fnac"] = fnac_fmt
+                    st.session_state["pac_edad"] = _calc_edad(fnac_fmt)
 
             sexo_idx = SEXOS.index(st.session_state["pac_sexo"]) \
                 if st.session_state["pac_sexo"] in SEXOS else 0
@@ -244,20 +250,73 @@ def render():
                 "Sexo", SEXOS, index=sexo_idx, key="_psexo")
 
             c5, c6 = st.columns(2)
-            # c5.text_input("Edad (calculada)", value=st.session_state["pac_edad"],
-            #              key="_pedad", disabled=True)
 
-            fecha_est = c6.text_input("Fecha del estudio (DD/MM/AAAA)",
+            fecha_est = c5.text_input("Fecha del estudio",
                                       value=st.session_state["pac_fecha"],
-                                      key="_pfecha", placeholder=TODAY)
-            if not _validate_date(fecha_est):
-                c6.error("Formato inválido — DD/MM/AAAA")
+                                      key="_pfecha", placeholder=TODAY,
+                                      help="DD/MM/AAAA")
+            fecha_est_fmt = _format_date_input(fecha_est)
+            if fecha_est_fmt != fecha_est:
+                st.session_state["pac_fecha"] = fecha_est_fmt
+                st.rerun()
             else:
-                st.session_state["pac_fecha"] = fecha_est
+                if not _validate_date(fecha_est_fmt):
+                    c5.error("Formato inválido — DD/MM/AAAA")
+                else:
+                    st.session_state["pac_fecha"] = fecha_est_fmt
 
-            st.session_state["pac_obra_social"] = st.text_input(
-                "Obra Social / Prepaga",
-                value=st.session_state["pac_obra_social"], key="_pos")
+            # Obra Social — buscador predictivo con opción de agregar nuevas
+            st.markdown("**Obra Social / Prepaga**")
+            os_key = "_os_search"
+            os_val = st.session_state.get("pac_obra_social", "")
+
+            os_search = st.text_input(
+                "Buscar obra social",
+                value=os_val,
+                key=os_key,
+                placeholder="Escribí para buscar o agregar...",
+                label_visibility="collapsed",
+            )
+
+            # Filtrar opciones según lo que escribe
+            if os_search.strip():
+                filtered = [o for o in OBRAS_SOCIALES
+                            if os_search.lower() in o.lower()]
+            else:
+                filtered = OBRAS_SOCIALES
+
+            if filtered:
+                # Mostrar hasta 8 sugerencias como radio buttons
+                show = filtered[:8]
+                # Si el valor actual ya está en la lista, preseleccionarlo
+                cur_idx = show.index(os_val) if os_val in show else None
+                if os_search and os_search not in OBRAS_SOCIALES:
+                    show = [f'➕ Agregar "{os_search}"'] + show[:7]
+                    cur_idx = None
+
+                choice = st.radio(
+                    "Seleccioná una opción",
+                    show,
+                    index=cur_idx,
+                    key="_os_radio",
+                    label_visibility="collapsed",
+                )
+                if choice:
+                    if choice.startswith("➕ Agregar"):
+                        # Agregar a la lista en memoria y seleccionar
+                        OBRAS_SOCIALES.append(os_search)
+                        OBRAS_SOCIALES.sort()
+                        st.session_state["pac_obra_social"] = os_search
+                    else:
+                        st.session_state["pac_obra_social"] = choice
+            else:
+                st.caption("No se encontraron coincidencias.")
+                if os_search.strip():
+                    if st.button(f'➕ Agregar "{os_search}"', key="_os_add"):
+                        OBRAS_SOCIALES.append(os_search)
+                        OBRAS_SOCIALES.sort()
+                        st.session_state["pac_obra_social"] = os_search
+                        st.rerun()
 
         # ── Logo de la institución ────────────────────────────────────
         with st.expander("**Logo de la institución**", expanded=False):
@@ -410,21 +469,6 @@ def render():
                     label_visibility="collapsed",
                     key=f"_c4_{i}", placeholder="ppm")
 
-            # ── Validación de valores PPM ─────────────────────────────
-            h2_complete = all(
-                st.session_state.get(f"h2_{i}", "").strip() != ""
-                for i in range(n)
-            )
-            ch4_complete = all(
-                st.session_state.get(f"ch4_{i}", "").strip() != ""
-                for i in range(n)
-            )
-            if not h2_complete and not ch4_complete:
-                st.warning(
-                    "⚠ Al menos una columna (H2 o CH4) debe estar completa "
-                    "para generar el PDF."
-                )
-
         # ── Interpretación ───────────────────────────────────────────
         with st.expander("**Interpretación del profesional (opcional)**",
                          expanded=False):
@@ -433,6 +477,3 @@ def render():
                 value=st.session_state["interpretacion"],
                 height=80, key="_interp",
                 label_visibility="collapsed")
-
-    # ── Validación de campos obligatorios del paciente ───────────────
-    _show_patient_validation()

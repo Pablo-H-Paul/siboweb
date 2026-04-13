@@ -111,6 +111,7 @@ def _build_pdf_data():
         "time_labels":    time_lbls,
         "umbral":         ss.get("umbral", 20),
         "interpretacion": ss.get("interpretacion", ""),
+        "diagnostico":    ss.get("diagnostico", ""),
         "ef_vars":        ef_vars,
         "ef_otros":       ss.get("ef_otros", ""),
         "medicacion":     ss.get("medicacion", ""),
@@ -138,25 +139,18 @@ def show_app():
 
         # Generar PDF — logo y firma se cargan automáticamente desde assets/
         if bc1.button("📄 PDF", width='stretch', type="primary"):
-            errors = pg_datos.validate_required_fields()
-            if errors:
-                st.error(
-                    "**No se puede generar el PDF. Faltan datos obligatorios:**\n"
-                    + "\n".join(f"• {e}" for e in errors)
-                )
-            else:
-                try:
-                    data = _build_pdf_data()
-                    # Logo y firma: generate_pdf los carga desde assets/ por defecto
-                    pdf_bytes = generate_pdf(data)
-                    apellido = st.session_state.get(
-                        "pac_apellido", "informe").replace(" ", "_")
-                    filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-                    st.session_state["_pdf_bytes"] = pdf_bytes
-                    st.session_state["_pdf_filename"] = filename
-                    st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
-                except Exception as e:
-                    st.error(f"Error al generar PDF: {e}")
+            try:
+                data = _build_pdf_data()
+                # Logo y firma: generate_pdf los carga desde assets/ por defecto
+                pdf_bytes = generate_pdf(data)
+                apellido = st.session_state.get(
+                    "pac_apellido", "informe").replace(" ", "_")
+                filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+                st.session_state["_pdf_bytes"] = pdf_bytes
+                st.session_state["_pdf_filename"] = filename
+                st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
+            except Exception as e:
+                st.error(f"Error al generar PDF: {e}")
 
         if st.session_state.get("_pdf_bytes"):
             bc2.download_button(
