@@ -176,6 +176,43 @@ def _tipo_changed(tipo, sustrato):
             sustrato != st.session_state.get("_prev_sust", ""))
 
 
+# ── Validación pública (usada por app.py antes de generar PDF) ───────
+
+_PAC_REQUIRED = [
+    ("pac_nombre",      "Nombre del paciente"),
+    ("pac_apellido",    "Apellido del paciente"),
+    ("pac_fnac",        "Fecha de nacimiento"),
+    ("pac_sexo",        "Sexo"),
+    ("pac_obra_social", "Obra Social / Prepaga"),
+]
+
+
+def validate_required_fields() -> list:
+    """Retorna lista de errores. Lista vacía = todo OK."""
+    ss = st.session_state
+    errors = []
+    for key, label in _PAC_REQUIRED:
+        if not ss.get(key, "").strip():
+            errors.append(label)
+    n = ss.get("n_mediciones", 7)
+    h2_ok  = all(ss.get(f"h2_{i}",  "").strip() for i in range(n))
+    ch4_ok = all(ss.get(f"ch4_{i}", "").strip() for i in range(n))
+    if not h2_ok and not ch4_ok:
+        errors.append("Valores PPM (al menos H2 o CH4 completo)")
+    return errors
+
+
+def _show_patient_validation():
+    missing = [label for key, label in _PAC_REQUIRED
+               if not st.session_state.get(key, "").strip()]
+    if missing:
+        st.warning(
+            "⚠ **Datos del paciente incompletos:** "
+            + ", ".join(missing)
+            + ". Estos campos son obligatorios para generar el PDF."
+        )
+
+
 # ── Render ──────────────────────────────────────────────────────────
 
 def render():
@@ -461,3 +498,6 @@ def render():
                 value=st.session_state["interpretacion"],
                 height=80, key="_interp",
                 label_visibility="collapsed")
+
+    # ── Validación de campos obligatorios del paciente ───────────────
+    _show_patient_validation()
