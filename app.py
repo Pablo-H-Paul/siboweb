@@ -171,8 +171,7 @@ def show_app():
 
             # 2. Limpiamos TODO el session_state
             for key in list(st.session_state.keys()):
-                if key not in keys_to_keep:
-                    del st.session_state[key]
+                del st.session_state[key]
 
             # 3. Forzamos el refresco visual de la aplicación
             st.rerun()
