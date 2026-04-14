@@ -103,7 +103,8 @@ def render():
 
     # ── Gráfico ──────────────────────────────────────────────────────
     if any(v is not None for v in h2_vals + ch4_vals):
-        chart_bytes = _build_chart(h2_vals, ch4_vals, tiempos, umbral, tls)
+        chart_bytes = _build_chart(
+            h2_vals, ch4_vals, tiempos, umbral+h2_vals[0], tls)
         st.session_state["chart_bytes"] = chart_bytes   # para el PDF
         st.image(chart_bytes, width='stretch')
     else:

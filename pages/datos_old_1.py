@@ -59,35 +59,40 @@ TIPO_INFO = {
 
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
-_OS_TOP = ["OSDE", "PARTICULAR", "SWISS MEDICAL"]
+_OS_TOP = ["OSDE", "Particular", "Swiss Medical"]
 _OS_REST = sorted([o for o in [
-    "A.P.M / OSAPM", "ACCORD SALUD", "ACTIVA SALUD", "AMFFA", "ANDAR", "APRES",
-    "APSOT / FFST", "ASMEPRIV", "ASSISTRAVEL", "ASOCIART ART", "AVALIAN", "BCO. PCIA. (AMEBPBA)",
-    "BANCARIOS (OS.SSB)", "BERKLEY ART", "BRISTOL / STA. CECILIA", "C.A.S.A", "C.M.PUEYRREDON",
-    "CAJA DE ABOGADOS", "CEMIC", "CIMA", "COBERMED", "COBERTEC / OS MOSAISTAS", "COLEGIO DE ESCRIBANOS",
-    "COLONIA SUIZA ART", "COMEDICA (Plan especial OSSEG)", "COMEI", "CORPORACIÓN ASISTENCIAL",
-    "DASMI - UNIV. DE LUJÁN", "DOM CENTRO DE REUMATOLOGÍA", "DOSUBA", "EMERGENCIAS", "EMPLEADOS DE FARMACIA",
+    "A.P.M / OSAPM", "ACTIVA SALUD", "ANDAR", "APRES", "APSOT / FFST",
+    "ASMEPRIV", "ASSISTRAVEL", "AVALIAN", "BCO. PCIA. (AMEBPBA)",
+    "BRISTOL / STA. CECILIA", "C.A.S.A", "C.M.PUEYRREDON", "CEMIC", "CIMA",
+    "COBERMED", "COBERTEC / OS MOSAISTAS", "COLEGIO DE ESCRIBANOS",
+    "COMEDICA (Plan especial OSSEG)", "COMEI", "CORPORACIÓN ASISTENCIAL",
+    "DASMI - UNIV. DE LUJÁN", "DOM CENTRO DE REUMATOLOGÍA", "EMERGENCIAS",
+    "EMPLEADOS DE FARMACIA",
     "ENSALUD (DELTA-KRONO-QUANTUM-OSOETSYL-OSPICAL-OSPIHMP-OSPIM MOLINEROS-OSIAD-FOSDIC-OSPINENDOCTER)",
-    "EXPERTA ART", "FEDERADA SALUD", "FEDERACION PATRONAL ART", "FEMEDICA", "FRESENIUS", "GALENO",
-    "HEALTH MEDICAL / OSSIMRA", "HOPE", "HOSPITAL ALEMÁN", "HOSPITAL BRITÁNICO", "HOSPITAL SIRIO LIBANES",
-    "INST. SEGUROS DE JUJUY", "IOMA", "IOSFA", "JARDINEROS O.S.", "LA HOLANDO ART", "LA PEQUEÑA FAMILIA",
-    "LA SEGUNDA ART", "LUIS PASTEUR", "LUZ Y FUERZA", "MEDICAL CORPORATIVE TRADE",
-    "MEDICAL'S - MEDIN - Pro.Sa - PROMED - GENESEN - SEMESA", "MEDICENTER", "MEDICUS", "MEDIFE", "MEDITAR",
-    "M&C SALUD / OS OSPACA", "MUTUAL DEL CLERO", "O.S.P.U.N.C.P.B.A.", "OBSBA", "OMINT", "OMIT ART", "OPDEA",
-    "OSAM - PERGAMINO", "OSAP - ACEROS PARANÁ", "OSDEM", "OSDEPYM", "OSDIPP", "OSDOP",
-    "OSETRA (O. S. EMPLEADFOS DEL TABACO )", "OSFATUN", "OSFE", "OSMITA", "OSOCNA",
-    "OSPA – (O. S. PERSONAL AERONÁUTICO)", "OSPE - OSPE APROSS Y OSPE PMO", "OSPEDYC", "OSPESGYPE", "OSPETAX",
-    "OSPESA", "OSPETELCO", "OSPIDA", "OSPIA", "OSPIL", "OSPIT - Textiles", "OSPIT - TABACALEROS",
-    "OSPOCE / AMCI / INTEGRAL", "OSPREM", "OSSEG", "OSTECF", "PASTELEROS", "PERSONAL MUNICIPALIDAD DE LA MATANZA",
-    "PODER JUDICIAL", "PREMEDIC", "PRESTADORES DE SALUD - SALUD DEL NUEVO ROSARIO", "PREVENCIÓN SALUD",
-    "PREVENCION ART", "PRIVAMED", "PROME (PROTECCIÓN MÉDICA ESCOLAR)", "PROSAL SALUD", "PROVINCIA ART",
-    "QUÍMICOS DE CAMPANA Y ZÁRATE", "RAS", "RED TOTAL - CONSULT RENT - MGN SALUD", "RED PRESTACIONAL - DOSUBA",
-    "ROISA (IPROSS, OSMISS, OSYC, DOCTORED)", "SADAIC", "SAIS - GESTIÓN SALUD (OSDOP)", "SAMI MATANZA",
-    "SANCOR SALUD / STAFF MÉDICO", "SANIDAD", "SEGUROS (OSSEG)", "SEMPRE LA PAMPA", "SGM ART",
-    "SIGMA – OSLARA", "SMAI", "SALUD PLENA (AMTCIA-MOA-OSPICA-OSPM MARÍTIMOS-VESALIO SALUD)", "SWISS MEDICAL",
-    "TIEMPO MÉDICO", "TV SALUD", "UAI SALUD", "UNION PERSONAL / ACCORD SALUD", "VIA MÉDICA (OS FUTBOLISTAS)",
-    "O. S. DE PETROLEROS", "O. S. DEL SERVICIO PENITENCIARIO FEDERAL", "O. S. FERROVIARIA",
-    "O. S. PATRONES DE CABOTAJE"
+    "FEDERADA SALUD", "FEMEDICA", "FRESENIUS", "GALENO",
+    "HEALTH MEDICAL / OSSIMRA", "HOPE", "HOSPITAL ALEMÁN", "HOSPITAL BRITÁNICO",
+    "HOSPITAL SIRIO LIBANES", "INST. SEGUROS DE JUJUY", "IOSFA", "JARDINEROS O.S.",
+    "LA PEQUEÑA FAMILIA", "LUIS PASTEUR", "LUZ Y FUERZA",
+    "MEDICAL CORPORATIVE TRADE",
+    "MEDICAL'S - MEDIN - Pro.Sa - PROMED - GENESEN - SEMESA",
+    "MEDICENTER", "MEDICUS", "MEDIFE", "MEDITAR",
+    "M&C SALUD / OS OSPACA", "O.S.P.U.N.C.P.B.A.", "OBSBA", "OMINT", "OPDEA",
+    "OSAM - PERGAMINO", "OSAP - ACEROS PARANÁ", "OSDEM", "OSDEPYM", "OSDIPP",
+    "OSFE", "OSMITA", "OSPE - OSPE APROSS Y OSPE PMO", "OSPEDYC", "OSPESGYPE",
+    "OSPETAX", "OSPESA", "OSPIDA", "OSPIA", "OSPIL", "OSPIT - Textiles",
+    "OSPIT - TABACALEROS", "OSPOCE / AMCI / INTEGRAL", "OSPREM", "OSTECF",
+    "PASTELEROS", "PERSONAL MUNICIPALIDAD DE LA MATANZA", "PODER JUDICIAL",
+    "PREMEDIC", "PRESTADORES DE SALUD - SALUD DEL NUEVO ROSARIO",
+    "PREVENCIÓN SALUD", "PRIVAMED",
+    "PROME (PROTECCIÓN MÉDICA ESCOLAR)", "PROSAL SALUD",
+    "QUÍMICOS DE CAMPANA Y ZÁRATE", "RAS",
+    "RED TOTAL - CONSULT RENT - MGN SALUD", "RED PRESTACIONAL - DOSUBA",
+    "ROISA (IPROSS, OSMISS, OSYC, DOCTORED)", "SADAIC",
+    "SAIS - GESTIÓN SALUD (OSDOP)", "SAMI MATANZA",
+    "SANCOR SALUD / STAFF MÉDICO", "SEGUROS (OSSEG)", "SEMPRE LA PAMPA",
+    "SMAI", "SALUD PLENA (AMTCIA-MOA-OSPICA-OSPM MARÍTIMOS-VESALIO SALUD)",
+    "TIEMPO MÉDICO", "TV SALUD", "UAI SALUD",
+    "UNION PERSONAL / ACCORD SALUD", "VIA MÉDICA (OS FUTBOLISTAS)",
 ] if o not in _OS_TOP])
 OBRAS_SOCIALES = _OS_TOP + _OS_REST
 
@@ -301,10 +306,8 @@ def render():
             else:
                 st.session_state["pac_fecha"] = fecha_est
 
-            # Obra Social — buscador predictivo
+            # Obra Social — buscador predictivo con opción de agregar nuevas
             st.markdown("**Obra Social / Prepaga**")
-
-            # Usamos un callback o simplemente evitamos la asignación directa conflictiva
             os_search = st.text_input(
                 "Buscar obra social",
                 value=st.session_state.get("_os_search_txt", ""),
@@ -314,42 +317,41 @@ def render():
             )
 
             term = os_search.strip()
-
             if term:
                 filtered = [o for o in OBRAS_SOCIALES if term.lower()
                             in o.lower()]
+            else:
+                filtered = OBRAS_SOCIALES
 
-                if filtered:
-                    show = filtered[:8]
-                    options = show[:]
+            if filtered:
+                show = filtered[:8]
+                # Opción de agregar si no coincide exactamente con ninguna
+                options = show[:]
+                if term and term not in OBRAS_SOCIALES and not any(
+                        o.lower() == term.lower() for o in OBRAS_SOCIALES):
+                    options = [f'➕ Agregar "{term}"'] + show[:7]
 
-                    # Si el término no existe, damos opción de agregar
-                    if term and term not in OBRAS_SOCIALES and not any(o.lower() == term.lower() for o in OBRAS_SOCIALES):
-                        options = [f'➕ Agregar "{term}"'] + show[:7]
+                cur = st.session_state.get("pac_obra_social", "")
+                cur_idx = options.index(cur) if cur in options else 0
 
-                    cur = st.session_state.get("pac_obra_social", "")
-                    cur_idx = options.index(cur) if cur in options else 0
-
-                    choice = st.radio(
-                        "Seleccioná",
-                        options,
-                        index=cur_idx,
-                        key=f"_os_radio_{term}",
-                        label_visibility="collapsed",
-                    )
-
-                    if choice:
-                        if choice.startswith("➕ Agregar"):
-                            if term not in OBRAS_SOCIALES:
-                                OBRAS_SOCIALES.append(term)
-                                rest = sorted(
-                                    [o for o in OBRAS_SOCIALES if o not in _OS_TOP])
-                                OBRAS_SOCIALES[:] = _OS_TOP + rest
-                            st.session_state["pac_obra_social"] = term
-                            # ELIMINAMOS la línea conflictiva: st.session_state["_os_search_txt"] = term
-                        else:
-                            st.session_state["pac_obra_social"] = choice
-
+                choice = st.radio(
+                    "Seleccioná",
+                    options,
+                    index=cur_idx,
+                    # key cambia con el término → sin stale state
+                    key=f"_os_radio_{term}",
+                    label_visibility="collapsed",
+                )
+                if choice and choice.startswith("➕ Agregar"):
+                    OBRAS_SOCIALES.append(term)
+                    # Mantener los top 3 fijos, reordenar el resto
+                    rest = sorted(
+                        [o for o in OBRAS_SOCIALES if o not in _OS_TOP])
+                    OBRAS_SOCIALES[:] = _OS_TOP + rest
+                    st.session_state["pac_obra_social"] = term
+                    st.session_state["_os_search_txt"] = term
+                elif choice and not choice.startswith("➕"):
+                    st.session_state["pac_obra_social"] = choice
             else:
                 st.caption("Sin coincidencias.")
                 if term:

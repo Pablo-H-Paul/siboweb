@@ -221,8 +221,8 @@ def generate_pdf(data: dict,
     story.append(KeepTogether([
         pt, Spacer(1, 4),
         Paragraph(
-            f"<b>AUC H2:</b> {h2s} ppm·min &nbsp;|&nbsp; ",
-            #f"<b>AUC CH4:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
+            f"<b>AUC H2:</b> {h2s} ppm·min &nbsp; ",
+            # f"<b>AUC CH4:</b> {ch4s} ppm·min &nbsp;|&nbsp; Umbral: {umbral} ppm",
             ps("_au", fontSize=9, textColor=DARK, alignment=TA_CENTER),
         ),
     ]))
@@ -242,7 +242,8 @@ def generate_pdf(data: dict,
     story += [HRFlowable(width="100%", thickness=0.5, color=BLUE),
               Spacer(1, 6), Paragraph("DIAGNÓSTICO", sSH)]
     diagnostico = data.get("diagnostico", "").strip()
-    story.append(Paragraph(diagnostico if diagnostico else "Sin diagnóstico registrado.", sBo))
+    story.append(
+        Paragraph(diagnostico if diagnostico else "Sin diagnóstico registrado.", sBo))
     story += [Spacer(1, 8), HRFlowable(width="100%",
                                        thickness=0.5, color=BLUE), Spacer(1, 6)]
 

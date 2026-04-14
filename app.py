@@ -5,7 +5,11 @@ SIBO Analyzer — Web v8.0
 import streamlit as st
 from datetime import datetime
 
-import auth
+# Para limpiar la página
+from streamlit_js_eval import streamlit_js_eval
+
+
+# import auth
 import pages.datos as pg_datos
 import pages.efectos as pg_efectos
 import pages.grafico as pg_grafico
@@ -121,17 +125,17 @@ def _build_pdf_data():
 
 # ── APP ──────────────────────────────────────────────────────────────
 def show_app():
-    user = auth.get_user()
-    email = user.email if user else ""
+    # user = auth.get_user()
+    # email = user.email if user else ""
 
     hc1, hc2 = st.columns([5, 3])
-    with hc1:
-        st.markdown(f"""
-        <div style="background:#1E3A5F;color:white;padding:10px 16px;
-                    border-radius:8px;margin-bottom:0.8rem">
-            <span style="font-size:1rem;font-weight:500">⚕ SIBO Analyzer</span>
-            <span style="font-size:0.8rem;color:#94A3B8;margin-left:12px">{email}</span>
-        </div>""", unsafe_allow_html=True)
+    # with hc1:
+    #    st.markdown(f"""
+    #    <div style="background:#1E3A5F;color:white;padding:10px 16px;
+    #                border-radius:8px;margin-bottom:0.8rem">
+    #        <span style="font-size:1rem;font-weight:500">⚕ SIBO Analyzer</span>
+    #        <span style="font-size:0.8rem;color:#94A3B8;margin-left:12px">{email}</span>
+    #    </div>""", unsafe_allow_html=True)
 
     with hc2:
         st.markdown("<div style='margin-top:4px'>", unsafe_allow_html=True)
@@ -139,18 +143,27 @@ def show_app():
 
         # Generar PDF — logo y firma se cargan automáticamente desde assets/
         if bc1.button("📄 PDF", width='stretch', type="primary"):
-            try:
-                data = _build_pdf_data()
-                # Logo y firma: generate_pdf los carga desde assets/ por defecto
-                pdf_bytes = generate_pdf(data)
-                apellido = st.session_state.get(
-                    "pac_apellido", "informe").replace(" ", "_")
-                filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-                st.session_state["_pdf_bytes"] = pdf_bytes
-                st.session_state["_pdf_filename"] = filename
-                st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
-            except Exception as e:
-                st.error(f"Error al generar PDF: {e}")
+            # 1. Ejecutar validación de campos obligatorios
+            errores = pg_datos.validate_required_fields()
+
+            if errores:
+                # Si hay errores, mostramos una alerta y NO generamos nada
+                mensaje_error = "No se puede generar el PDF. Faltan datos: " + \
+                    ", ".join(errores)
+                st.error(mensaje_error)
+            else:
+                try:
+                    data = _build_pdf_data()
+                    # Logo y firma: generate_pdf los carga desde assets/ por defecto
+                    pdf_bytes = generate_pdf(data)
+                    apellido = st.session_state.get(
+                        "pac_apellido", "informe").replace(" ", "_")
+                    filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+                    st.session_state["_pdf_bytes"] = pdf_bytes
+                    st.session_state["_pdf_filename"] = filename
+                    st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
+                except Exception as e:
+                    st.error(f"Error al generar PDF: {e}")
 
         if st.session_state.get("_pdf_bytes"):
             bc2.download_button(
@@ -168,19 +181,10 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            # Llaves que NO queremos tocar
-            conservar = ("prof_", "user", "auth", "_pn",
-                         "_pa", "_esp", "_pm", "_pi")
-
-            for key in list(st.session_state.keys()):
-                # Si la llave no está en la lista de conservados, se elimina
-                if not any(key.startswith(c) for c in conservar) and key not in conservar:
-                    del st.session_state[key]
-
-            st.rerun()
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
         if bc4.button("Salir", width='stretch'):
-            auth.logout()
+            # auth.logout()
             st.rerun()
 
     tab1, tab2, tab3 = st.tabs([
