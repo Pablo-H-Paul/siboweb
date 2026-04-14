@@ -168,16 +168,13 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            # 1. Definimos qué prefijos de llaves queremos eliminar
-            # pac_: datos paciente, h2_/ch4_: valores, ef_: efectos, sint_: síntomas
-            prefixes_to_clear = ("pac_", "h2_", "ch4_", "ef_", "sint_", "interpretacion",
-                                 "diagnostico", "tipo_analisis", "sustrato", "chart_bytes")
 
+            # 2. Limpiamos TODO el session_state
             for key in list(st.session_state.keys()):
-                if key.startswith(prefixes_to_clear):
+                if key not in keys_to_keep:
                     del st.session_state[key]
 
-            # 2. Forzamos el reinicio de la app
+            # 3. Forzamos el refresco visual de la aplicación
             st.rerun()
 
         if bc4.button("Salir", width='stretch'):
