@@ -168,12 +168,15 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
+            # Llaves que NO queremos tocar
+            conservar = ("prof_", "user", "auth", "_pn",
+                         "_pa", "_esp", "_pm", "_pi")
 
-            # 2. Limpiamos TODO el session_state
             for key in list(st.session_state.keys()):
-                del st.session_state[key]
+                # Si la llave no está en la lista de conservados, se elimina
+                if not any(key.startswith(c) for c in conservar) and key not in conservar:
+                    del st.session_state[key]
 
-            # 3. Forzamos el refresco visual de la aplicación
             st.rerun()
 
         if bc4.button("Salir", width='stretch'):
