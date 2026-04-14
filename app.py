@@ -29,7 +29,9 @@ def login():
     with col_form:
         with st.form("login_form"):
             # Agregamos los renglones en blanco antes del input
+            # Agregamos los espacios y el título principal
             st.markdown("<br><br>", unsafe_allow_html=True)
+            st.title("⚕️ SIBO Analyzer")
 
             user = st.text_input("Usuario")
             pw = st.text_input("Contraseña", type="password")
@@ -154,6 +156,7 @@ def show_app():
 
     # 1. Agregamos espacio al inicio de la app para que no pegue al borde superior
     st.markdown("<br><br>", unsafe_allow_html=True)
+    st.title("⚕️ SIBO Analyzer | CIMeQ")
 
     hc1, hc2 = st.columns([5, 3])
     # with hc1:
