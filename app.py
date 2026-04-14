@@ -21,6 +21,22 @@ SINTOMAS = ["Flatulencia", "Dolor Abdominal",
             "Diarrea", "Estreñimiento", "Distensión"]
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
+def login():
+    with st.form("login_form"):
+        user = st.text_input("Usuario")
+        pw = st.text_input("Contraseña", type="password")
+        submit = st.form_submit_button("Entrar")
+        
+        if submit:
+            if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
+                st.session_state["role"] = "admin"
+                st.rerun()
+            elif user == st.secrets["credentials"]["standard_user"] and pw == st.secrets["credentials"]["standard_pass"]:
+                st.session_state["role"] = "user"
+                st.rerun()
+            else:
+                st.error("Credenciales fallidas")
+
 st.set_page_config(
     page_title="SIBO Analyzer",
     page_icon="⚕",
@@ -38,38 +54,45 @@ footer     { visibility: hidden; }
 
 
 # ── LOGIN ────────────────────────────────────────────────────────────
-def show_login():
-    _, col, _ = st.columns([1, 1.2, 1])
-    with col:
-        st.markdown("##")
-        with st.container(border=True):
-            st.markdown("""
-            <div style="background:#1E3A5F;border-radius:8px;padding:16px 20px;
-                        margin-bottom:1rem;text-align:center">
-                <h2 style="color:white;font-size:1.2rem;margin:0">SIBO Analyzer</h2>
-                <p style="color:#94A3B8;font-size:0.8rem;margin:4px 0 0">
-                    Sistema de análisis de hidrógeno espirado</p>
-            </div>""", unsafe_allow_html=True)
+if "role" not in st.session_state:
+    login()
+else:
+    # Tu app normal aquí
+    st.write(f"Conectado como: {st.session_state['role']}")
 
-            email = st.text_input("Correo electrónico",
-                                  placeholder="medico@institucion.com")
-            password = st.text_input("Contraseña", type="password")
 
-            if st.button("Ingresar", width='stretch', type="primary"):
-                if not email or not password:
-                    st.error("Ingresá tu correo y contraseña.")
-                else:
-                    with st.spinner("Verificando..."):
-                        user = auth.login(email, password)
-                    if user:
-                        st.rerun()
-                    else:
-                        st.error("Credenciales incorrectas.")
+# def show_login():
+#    _, col, _ = st.columns([1, 1.2, 1])
+#    with col:
+#        st.markdown("##")
+#        with st.container(border=True):
+#            st.markdown("""
+#            <div style="background:#1E3A5F;border-radius:8px;padding:16px 20px;
+#                        margin-bottom:1rem;text-align:center">
+#                <h2 style="color:white;font-size:1.2rem;margin:0">SIBO Analyzer</h2>
+#                <p style="color:#94A3B8;font-size:0.8rem;margin:4px 0 0">
+#                    Sistema de análisis de hidrógeno espirado</p>
+#            </div>""", unsafe_allow_html=True)
 
-            st.markdown(
-                "<p style='text-align:center;font-size:0.75rem;color:gray;margin-top:1rem'>"
-                "SIBO Analyzer · v8.0 · Uso exclusivo profesional</p>",
-                unsafe_allow_html=True)
+#            email = st.text_input("Correo electrónico",
+#                                  placeholder="medico@institucion.com")
+#            password = st.text_input("Contraseña", type="password")
+#
+#            if st.button("Ingresar", width='stretch', type="primary"):
+#                if not email or not password:
+#                    st.error("Ingresá tu correo y contraseña.")
+#                else:
+#                    with st.spinner("Verificando..."):
+#                        user = auth.login(email, password)
+#                    if user:
+#                        st.rerun()
+#                    else:
+#                        st.error("Credenciales incorrectas.")
+
+#            st.markdown(
+#                "<p style='text-align:center;font-size:0.75rem;color:gray;margin-top:1rem'>"
+#                "SIBO Analyzer · v8.0 · Uso exclusivo profesional</p>",
+#                unsafe_allow_html=True)
 
 
 # ── PDF DATA ─────────────────────────────────────────────────────────
