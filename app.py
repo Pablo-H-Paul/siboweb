@@ -55,14 +55,6 @@ footer     { visibility: hidden; }
 """, unsafe_allow_html=True)
 
 
-# ── LOGIN ────────────────────────────────────────────────────────────
-if "role" not in st.session_state:
-    login()
-else:
-    # Tu app normal aquí
-    st.write(f"Conectado como: {st.session_state['role']}")
-
-
 # def show_login():
 #    _, col, _ = st.columns([1, 1.2, 1])
 #    with col:
