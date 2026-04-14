@@ -23,20 +23,27 @@ TODAY = datetime.now().strftime("%d/%m/%Y")
 
 
 def login():
-    with st.form("login_form"):
-        user = st.text_input("Usuario")
-        pw = st.text_input("Contraseña", type="password")
-        submit = st.form_submit_button("Entrar")
+    # Centrar un poco el formulario visualmente si lo deseas
+    _, col_form, _ = st.columns([1, 2, 1])
 
-        if submit:
-            if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
-                st.session_state["role"] = "admin"
-                st.rerun()
-            elif user == st.secrets["credentials"]["standard_user"] and pw == st.secrets["credentials"]["standard_pass"]:
-                st.session_state["role"] = "user"
-                st.rerun()
-            else:
-                st.error("Credenciales fallidas")
+    with col_form:
+        with st.form("login_form"):
+            # Agregamos los renglones en blanco antes del input
+            st.markdown("<br><br>", unsafe_allow_html=True)
+
+            user = st.text_input("Usuario")
+            pw = st.text_input("Contraseña", type="password")
+            submit = st.form_submit_button("Entrar")
+
+            if submit:
+                if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
+                    st.session_state["role"] = "admin"
+                    st.rerun()
+                elif user == st.secrets["credentials"]["standard_user"] and pw == st.secrets["credentials"]["standard_pass"]:
+                    st.session_state["role"] = "user"
+                    st.rerun()
+                else:
+                    st.error("Credenciales fallidas")
 
 
 st.set_page_config(
@@ -145,6 +152,9 @@ def show_app():
     # user = auth.get_user()
     # email = user.email if user else ""
 
+    # 1. Agregamos espacio al inicio de la app para que no pegue al borde superior
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
     hc1, hc2 = st.columns([5, 3])
     # with hc1:
     #    st.markdown(f"""
@@ -201,7 +211,8 @@ def show_app():
             streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
         if bc4.button("Salir", width='stretch'):
-            # auth.logout()
+            # Eliminamos el rol para cerrar la sesión efectivamente
+            del st.session_state["role"]
             st.rerun()
 
     tab1, tab2, tab3 = st.tabs([
