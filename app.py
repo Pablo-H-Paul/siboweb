@@ -21,12 +21,13 @@ SINTOMAS = ["Flatulencia", "Dolor Abdominal",
             "Diarrea", "Estreñimiento", "Distensión"]
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
+
 def login():
     with st.form("login_form"):
         user = st.text_input("Usuario")
         pw = st.text_input("Contraseña", type="password")
         submit = st.form_submit_button("Entrar")
-        
+
         if submit:
             if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
                 st.session_state["role"] = "admin"
@@ -36,6 +37,7 @@ def login():
                 st.rerun()
             else:
                 st.error("Credenciales fallidas")
+
 
 st.set_page_config(
     page_title="SIBO Analyzer",
@@ -224,8 +226,10 @@ def show_app():
 
 
 # ── ENTRY POINT ──────────────────────────────────────────────────────
-# if auth.is_authenticated():
-#    show_app()
-# else:
-#    show_login()
-show_app()
+# Reemplaza el bloque final por este:
+
+if "role" not in st.session_state:
+    login()
+else:
+    # Solo mostramos la app si el usuario pasó por el login()
+    show_app()
