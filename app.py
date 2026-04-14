@@ -161,10 +161,23 @@ def show_app():
                 width='stretch',
             )
 
+        # if bc3.button("Limpiar", width='stretch'):
+        #    preserve = {"_pdf_bytes", "_pdf_filename"}
+        #    for k in [k for k in st.session_state if k not in preserve]:
+        #        del st.session_state[k]
+        #    st.rerun()
+
         if bc3.button("Limpiar", width='stretch'):
-            preserve = {"_pdf_bytes", "_pdf_filename"}
-            for k in [k for k in st.session_state if k not in preserve]:
-                del st.session_state[k]
+            # 1. Definimos qué prefijos de llaves queremos eliminar
+            # pac_: datos paciente, h2_/ch4_: valores, ef_: efectos, sint_: síntomas
+            prefixes_to_clear = ("pac_", "h2_", "ch4_", "ef_", "sint_", "interpretacion",
+                                 "diagnostico", "tipo_analisis", "sustrato", "chart_bytes")
+
+            for key in list(st.session_state.keys()):
+                if key.startswith(prefixes_to_clear):
+                    del st.session_state[key]
+
+            # 2. Forzamos el reinicio de la app
             st.rerun()
 
         if bc4.button("Salir", width='stretch'):
