@@ -23,6 +23,7 @@ from reportlab.platypus import (
 )
 
 from logic.auc import calcular_auc
+from logic.interpretacion import interpretar
 
 EFECTOS = ["Flatulencia", "Dolor Abdominal",
            "Diarrea", "Estreñimiento", "Distensión"]
@@ -197,7 +198,7 @@ def generate_pdf(data: dict,
                                  fontName="Helvetica-Bold" if bold else "Helvetica",
                                  alignment=TA_CENTER))
 
-    pr = [[phc("Tiempo"), phc("H₂ (ppm)"), phc("CH₄ (ppm)")]]
+    pr = [[phc("Tiempo"), phc("H2 (ppm)"), phc("CH4 (ppm)")]]
     for i, tl in enumerate(time_lbls):
         pr.append([
             phc(tl, DARK, False),
@@ -217,7 +218,7 @@ def generate_pdf(data: dict,
         ("TOPPADDING",    (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
-    story.append(Paragraph("VALORES PPM — H₂ y CH₄", sSH))
+    story.append(Paragraph("VALORES PPM — H2 y CH4", sSH))
     story.append(KeepTogether([
         pt, Spacer(1, 4),
         Paragraph(
@@ -238,11 +239,26 @@ def generate_pdf(data: dict,
             Spacer(1, 8),
         ]
 
-    # ── Diagnóstico del profesional ──────────────────────────────────
+    # ── Interpretación ───────────────────────────────────────────────
     story += [HRFlowable(width="100%", thickness=0.5, color=BLUE),
-              Spacer(1, 6), Paragraph("DIAGNÓSTICO", sSH)]
-    diagnostico = data.get("diagnostico", "").strip()
-    story.append(Paragraph(diagnostico if diagnostico else "Sin diagnóstico registrado.", sBo))
+              Spacer(1, 6), Paragraph("RESULTADO E INTERPRETACIÓN", sSH)]
+    tit, cpo, pos = interpretar(
+        h2_vals, ch4_vals,
+        data.get("tipo_analisis", "SIBO"),
+        data.get("sustrato", "Lactulosa"),
+        tiempos, umbral,
+    )
+    story.append(Paragraph(tit, sIP if pos else sIN))
+    for line in cpo.strip().split("\n"):
+        line = line.strip()
+        if line:
+            story.append(
+                Paragraph(line, sCo if "CONSULTE" in line.upper() else sAU))
+
+    if data.get("interpretacion", "").strip():
+        story += [Spacer(1, 6), Paragraph("OBSERVACIONES DEL PROFESIONAL", sSH),
+                  Paragraph(data["interpretacion"].strip(), sBo)]
+
     story += [Spacer(1, 8), HRFlowable(width="100%",
                                        thickness=0.5, color=BLUE), Spacer(1, 6)]
 
