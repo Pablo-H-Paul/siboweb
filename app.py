@@ -171,7 +171,6 @@ def show_app():
 
         if bc3.button("Limpiar", width='stretch'):
             streamlit_js_eval(js_expressions="parent.window.location.reload()")
-            show_app()
 
         if bc4.button("Salir", width='stretch'):
             # Eliminamos el rol para cerrar la sesión efectivamente
