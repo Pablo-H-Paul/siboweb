@@ -21,6 +21,8 @@ SINTOMAS = ["Flatulencia", "Dolor Abdominal",
             "Diarrea", "Estreñimiento", "Distensión"]
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
+# BLOQUE LOGIN con Streamlit
+
 
 def login():
     # Centrar un poco el formulario visualmente si lo deseas
@@ -211,7 +213,8 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            show_app()
 
         if bc4.button("Salir", width='stretch'):
             # Eliminamos el rol para cerrar la sesión efectivamente
