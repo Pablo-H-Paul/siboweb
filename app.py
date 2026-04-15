@@ -24,30 +24,30 @@ TODAY = datetime.now().strftime("%d/%m/%Y")
 # BLOQUE LOGIN con Streamlit
 
 
-def login():
-    # Centrar un poco el formulario visualmente si lo deseas
-    _, col_form, _ = st.columns([1, 2, 1])
-
-    with col_form:
-        with st.form("login_form"):
-            # Agregamos los renglones en blanco antes del input
-            # Agregamos los espacios y el título principal
-            st.markdown("<br><br>", unsafe_allow_html=True)
-            st.title("⚕️ SIBO Analyzer")
-
-            user = st.text_input("Usuario")
-            pw = st.text_input("Contraseña", type="password")
-            submit = st.form_submit_button("Entrar")
-
-            if submit:
-                if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
-                    st.session_state["role"] = "admin"
-                    st.rerun()
-                elif user == st.secrets["credentials"]["standard_user"] and pw == st.secrets["credentials"]["standard_pass"]:
-                    st.session_state["role"] = "user"
-                    st.rerun()
-                else:
-                    st.error("Credenciales fallidas")
+# def login():
+#    # Centrar un poco el formulario visualmente si lo deseas
+#    _, col_form, _ = st.columns([1, 2, 1])
+#
+#    with col_form:
+#        with st.form("login_form"):
+#            # Agregamos los renglones en blanco antes del input
+#            # Agregamos los espacios y el título principal
+#            st.markdown("<br><br>", unsafe_allow_html=True)
+#            st.title("⚕️ SIBO Analyzer")
+#
+#            user = st.text_input("Usuario")
+#            pw = st.text_input("Contraseña", type="password")
+#            submit = st.form_submit_button("Entrar")
+#
+#            if submit:
+#                if user == st.secrets["credentials"]["admin_user"] and pw == st.secrets["credentials"]["admin_pass"]:
+#                    st.session_state["role"] = "admin"
+#                   st.rerun()
+#                elif user == st.secrets["credentials"]["standard_user"] and pw == st.secrets["credentials"]["standard_pass"]:
+#                    st.session_state["role"] = "user"
+#                   st.rerun()
+#                else:
+#                    st.error("Credenciales fallidas")
 
 
 st.set_page_config(
@@ -64,40 +64,6 @@ st.markdown("""
 footer     { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
-
-
-# def show_login():
-#    _, col, _ = st.columns([1, 1.2, 1])
-#    with col:
-#        st.markdown("##")
-#        with st.container(border=True):
-#            st.markdown("""
-#            <div style="background:#1E3A5F;border-radius:8px;padding:16px 20px;
-#                        margin-bottom:1rem;text-align:center">
-#                <h2 style="color:white;font-size:1.2rem;margin:0">SIBO Analyzer</h2>
-#                <p style="color:#94A3B8;font-size:0.8rem;margin:4px 0 0">
-#                    Sistema de análisis de hidrógeno espirado</p>
-#            </div>""", unsafe_allow_html=True)
-
-#            email = st.text_input("Correo electrónico",
-#                                  placeholder="medico@institucion.com")
-#            password = st.text_input("Contraseña", type="password")
-#
-#            if st.button("Ingresar", width='stretch', type="primary"):
-#                if not email or not password:
-#                    st.error("Ingresá tu correo y contraseña.")
-#                else:
-#                    with st.spinner("Verificando..."):
-#                        user = auth.login(email, password)
-#                    if user:
-#                        st.rerun()
-#                    else:
-#                        st.error("Credenciales incorrectas.")
-
-#            st.markdown(
-#                "<p style='text-align:center;font-size:0.75rem;color:gray;margin-top:1rem'>"
-#                "SIBO Analyzer · v8.0 · Uso exclusivo profesional</p>",
-#                unsafe_allow_html=True)
 
 
 # ── PDF DATA ─────────────────────────────────────────────────────────
@@ -150,63 +116,15 @@ def _build_pdf_data():
         "chart_bytes":    ss.get("chart_bytes"),
     }
 
-# -- RESET FORM ----------------
-
-
-def reset_form():
-    keys_to_reset = [
-        # Paciente
-        "pac_nombre", "pac_apellido", "pac_fnac", "pac_edad",
-        "pac_sexo", "pac_fecha", "pac_obra_social",
-
-        # Síntomas previos
-        *[f"sint_{s}" for s in SINTOMAS],
-        "sint_otros",
-
-        # Mediciones
-        *[f"h2_{i}" for i in range(20)],
-        *[f"ch4_{i}" for i in range(20)],
-
-        # Efectos
-        *[f"ef_{i}_{s}" for i in range(20) for s in EFECTOS],
-        "ef_otros",
-
-        # Otros
-        "diagnostico", "interpretacion", "medicacion",
-        "umbral", "tipo_analisis", "sustrato",
-        "n_mediciones", "intervalo"
-    ]
-
-    for k in keys_to_reset:
-        st.session_state[k] = ""  # 👈 CLAVE: no borrar, sino vaciar
-
-    # Checkboxes deben ir a False
-    for s in SINTOMAS:
-        st.session_state[f"sint_{s}"] = False
-
-    for i in range(20):
-        for s in EFECTOS:
-            st.session_state[f"ef_{i}_{s}"] = False
 
 # ── APP ──────────────────────────────────────────────────────────────
-
-
 def show_app():
-    # user = auth.get_user()
-    # email = user.email if user else ""
 
     # 1. Agregamos espacio al inicio de la app para que no pegue al borde superior
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.title("⚕️ SIBO Analyzer | CIMeQ")
 
     hc1, hc2 = st.columns([5, 3])
-    # with hc1:
-    #    st.markdown(f"""
-    #    <div style="background:#1E3A5F;color:white;padding:10px 16px;
-    #                border-radius:8px;margin-bottom:0.8rem">
-    #        <span style="font-size:1rem;font-weight:500">⚕ SIBO Analyzer</span>
-    #        <span style="font-size:0.8rem;color:#94A3B8;margin-left:12px">{email}</span>
-    #    </div>""", unsafe_allow_html=True)
 
     with hc2:
         st.markdown("<div style='margin-top:4px'>", unsafe_allow_html=True)
@@ -252,9 +170,12 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            # streamlit_js_eval(js_expressions="parent.window.location.reload()")
-            # show_app()
-            st.session_state.form_id += 1
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            show_app()
+
+        if bc4.button("Salir", width='stretch'):
+            # Eliminamos el rol para cerrar la sesión efectivamente
+            del st.session_state["role"]
             st.rerun()
 
     tab1, tab2, tab3 = st.tabs([
@@ -272,8 +193,6 @@ def show_app():
 
 # ── ENTRY POINT ──────────────────────────────────────────────────────
 # Reemplaza el bloque final por este:
-if "form_id" not in st.session_state:
-    st.session_state.form_id = 0
 
 if "role" not in st.session_state:
     login()

@@ -207,7 +207,8 @@ def _show_patient_validation():
 # ── Render ──────────────────────────────────────────────────────────
 
 def render():
-    st.text_input("Nombre", key=f"pac_nombre_{st.session_state.form_id}")
+
+    _init_state()
 
     _ensure_assets()
 
