@@ -194,8 +194,8 @@ def show_app():
 # ── ENTRY POINT ──────────────────────────────────────────────────────
 # Reemplaza el bloque final por este:
 
-if "role" not in st.session_state:
-    login()
-else:
-    # Solo mostramos la app si el usuario pasó por el login()
-    show_app()
+# if "role" not in st.session_state:
+#    login()
+# else:
+# Solo mostramos la app si el usuario pasó por el login()
+show_app()
