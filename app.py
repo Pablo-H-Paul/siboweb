@@ -150,8 +150,47 @@ def _build_pdf_data():
         "chart_bytes":    ss.get("chart_bytes"),
     }
 
+# -- RESET FORM ----------------
+
+
+def reset_form():
+    keys_to_reset = [
+        # Paciente
+        "pac_nombre", "pac_apellido", "pac_fnac", "pac_edad",
+        "pac_sexo", "pac_fecha", "pac_obra_social",
+
+        # Síntomas previos
+        *[f"sint_{s}" for s in SINTOMAS],
+        "sint_otros",
+
+        # Mediciones
+        *[f"h2_{i}" for i in range(20)],
+        *[f"ch4_{i}" for i in range(20)],
+
+        # Efectos
+        *[f"ef_{i}_{s}" for i in range(20) for s in EFECTOS],
+        "ef_otros",
+
+        # Otros
+        "diagnostico", "interpretacion", "medicacion",
+        "umbral", "tipo_analisis", "sustrato",
+        "n_mediciones", "intervalo"
+    ]
+
+    for k in keys_to_reset:
+        st.session_state[k] = ""  # 👈 CLAVE: no borrar, sino vaciar
+
+    # Checkboxes deben ir a False
+    for s in SINTOMAS:
+        st.session_state[f"sint_{s}"] = False
+
+    for i in range(20):
+        for s in EFECTOS:
+            st.session_state[f"ef_{i}_{s}"] = False
 
 # ── APP ──────────────────────────────────────────────────────────────
+
+
 def show_app():
     # user = auth.get_user()
     # email = user.email if user else ""
@@ -215,27 +254,7 @@ def show_app():
         if bc3.button("Limpiar", width='stretch'):
             # streamlit_js_eval(js_expressions="parent.window.location.reload()")
             # show_app()
-
-            # 1. Definimos qué queremos conservar (Login y Profesional)
-            # Conservamos 'role' para no volver al login y las llaves del médico
-            conservar = {
-                "role",
-                "prof_nombre", "prof_apellido", "prof_esp", "prof_mat", "prof_inst",
-                "prof_email", "prof_tel",
-                "_pn", "_pa", "_esp", "_pm", "_pi"
-            }
-
-            # 2. Vaciamos selectivamente el session_state
-            for key in list(st.session_state.keys()):
-                if key not in conservar:
-                    del st.session_state[key]
-
-            # 3. Forzamos el reinicio interno (mantiene la sesión abierta)
-            st.rerun()
-
-        if bc4.button("Salir", width='stretch'):
-            # Eliminamos el rol para cerrar la sesión efectivamente
-            del st.session_state["role"]
+            reset_form()
             st.rerun()
 
     tab1, tab2, tab3 = st.tabs([
