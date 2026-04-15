@@ -213,8 +213,25 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            streamlit_js_eval(js_expressions="parent.window.location.reload()")
-            show_app()
+            # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            # show_app()
+
+            # 1. Definimos qué queremos conservar (Login y Profesional)
+            # Conservamos 'role' para no volver al login y las llaves del médico
+            conservar = {
+                "role",
+                "prof_nombre", "prof_apellido", "prof_esp", "prof_mat", "prof_inst",
+                "prof_email", "prof_tel",
+                "_pn", "_pa", "_esp", "_pm", "_pi"
+            }
+
+            # 2. Vaciamos selectivamente el session_state
+            for key in list(st.session_state.keys()):
+                if key not in conservar:
+                    del st.session_state[key]
+
+            # 3. Forzamos el reinicio interno (mantiene la sesión abierta)
+            st.rerun()
 
         if bc4.button("Salir", width='stretch'):
             # Eliminamos el rol para cerrar la sesión efectivamente

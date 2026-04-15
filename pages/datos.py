@@ -207,28 +207,6 @@ def _show_patient_validation():
 # ── Render ──────────────────────────────────────────────────────────
 
 def render():
-    # ── RESET GRANULAR DE PACIENTE ─────────────────────────────
-    if st.session_state.get("_reset_paciente"):
-
-        # Claves de negocio del paciente
-        patient_keys = [
-            "pac_nombre", "pac_apellido", "pac_fnac", "pac_edad",
-            "pac_sexo", "pac_fecha", "pac_obra_social"
-        ]
-
-        # Claves de widgets (las que usás con key="_...")
-        widget_keys = [
-            "_pcn", "_pca", "_pfnac", "_psexo", "_pfecha", "_os_search_txt"
-        ]
-
-        for k in patient_keys + widget_keys:
-            if k in st.session_state:
-                del st.session_state[k]
-
-        # Limpiar flag y rerun limpio
-        del st.session_state["_reset_paciente"]
-        st.rerun()
-
     if "pac_nombre" not in st.session_state:
         _init_state()
 
