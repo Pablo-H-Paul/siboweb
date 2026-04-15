@@ -254,7 +254,7 @@ def show_app():
         if bc3.button("Limpiar", width='stretch'):
             # streamlit_js_eval(js_expressions="parent.window.location.reload()")
             # show_app()
-            reset_form()
+            st.session_state.form_id += 1
             st.rerun()
 
     tab1, tab2, tab3 = st.tabs([
@@ -272,6 +272,8 @@ def show_app():
 
 # ── ENTRY POINT ──────────────────────────────────────────────────────
 # Reemplaza el bloque final por este:
+if "form_id" not in st.session_state:
+    st.session_state.form_id = 0
 
 if "role" not in st.session_state:
     login()

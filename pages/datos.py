@@ -207,8 +207,7 @@ def _show_patient_validation():
 # ── Render ──────────────────────────────────────────────────────────
 
 def render():
-    if "pac_nombre" not in st.session_state:
-        _init_state()
+    st.text_input("Nombre", key=f"pac_nombre_{st.session_state.form_id}")
 
     _ensure_assets()
 
