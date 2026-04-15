@@ -213,7 +213,7 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
             show_app()
 
         if bc4.button("Salir", width='stretch'):
