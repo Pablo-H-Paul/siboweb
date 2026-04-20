@@ -119,7 +119,7 @@ def generate_pdf(data: dict,
     hdr = Table([[
         logo if logo else Paragraph("", sSu),
         [
-            Paragraph("INFORME DE PRUEBA DE HIDRÓGENO ESPIRADO", sT),
+            Paragraph("INFORME DE PRUEBA DE AIRE ESPIRADO", sT),
             Paragraph(
                 f"Estudio: {data.get('tipo_analisis', 'SIBO')} — Sustrato: {data.get('sustrato', '')}", sSu),
             Paragraph(f"Fecha: {fv.get('pac_fecha', TODAY)}", sSu),

@@ -49,13 +49,13 @@ TODAY = datetime.now().strftime("%d/%m/%Y")
 #                else:
 #                    st.error("Credenciales fallidas")
 
-
 st.set_page_config(
     page_title="SIBO Analyzer",
     page_icon="⚕",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
 
 st.markdown("""
 <style>
@@ -64,6 +64,53 @@ st.markdown("""
 footer     { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
+
+# Estilos CSS personalizados
+st.markdown("""
+<style>
+    /* Ajustes de espaciado */
+    .block-container { 
+        padding-top: 1rem; 
+        padding-bottom: 1rem; 
+    }
+    
+    /* Ocultar menú y footer */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+
+    /* Contenedor para centrar título e icono */
+    .header-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .header-icon {
+        font-size: 50px;
+        margin-bottom: 0px;
+    }
+
+    .header-title {
+        font-size: 42px;
+        font-weight: 700;
+        margin-top: 0px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Renderizado del Título e Icono Centrados
+st.markdown(
+    """
+    <div class="header-container">
+        <div class="header-title">⚕ SIBO Analyzer | CIMeQ</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ── PDF DATA ─────────────────────────────────────────────────────────
@@ -122,7 +169,6 @@ def show_app():
 
     # 1. Agregamos espacio al inicio de la app para que no pegue al borde superior
     st.markdown("<br><br>", unsafe_allow_html=True)
-    st.title("⚕️ SIBO Analyzer | CIMeQ")
 
     hc1, hc2 = st.columns([5, 3])
 
