@@ -91,15 +91,21 @@ def render():
     mc3.metric("Ref. H2",          "1000–3000")
 
     # ── Diagnóstico a completar por el profesional ───────────────────
+    # IMPORTANTE: el key del widget debe coincidir con el nombre en session_state.
+    # Streamlit guarda el valor del widget en ss[key], así que usamos
+    # key="diagnostico" (sin guión bajo) para que app.py lo lea con ss.get("diagnostico").
+    v = st.session_state.get("_v", 0)
     st.session_state.setdefault("diagnostico", "")
     st.markdown("#### Diagnóstico")
-    st.session_state["diagnostico"] = st.text_area(
+    st.text_area(
         "Ingresá o pegá el diagnóstico del profesional",
-        value=st.session_state["diagnostico"],
         height=120,
-        key="_diagnostico",
+        key=f"diagnostico{v}" if v > 0 else "diagnostico",
         placeholder="Escribí o pegá aquí el diagnóstico clínico...",
     )
+    # Sincronizar: cuando v>0 la key cambia, así que leemos el valor del widget nuevo
+    if v > 0:
+        st.session_state["diagnostico"] = st.session_state.get(f"diagnostico{v}", "")
 
     # ── Gráfico ──────────────────────────────────────────────────────
     if any(v is not None for v in h2_vals + ch4_vals):

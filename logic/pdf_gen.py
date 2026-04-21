@@ -25,7 +25,7 @@ from reportlab.platypus import (
 from logic.auc import calcular_auc
 
 EFECTOS = ["Flatulencia", "Dolor Abdominal",
-           "Diarrea", "Estreñimiento", "Distensión"]
+           "Diarrea", "Estreñimiento", "Distensión", "Eructos"]
 TODAY = datetime.now().strftime("%d/%m/%Y")
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 LOGO_PATH = ASSETS_DIR / "logo.png"
@@ -105,33 +105,32 @@ def generate_pdf(data: dict,
         a = fv.get(f"{prefix}_apellido", "").strip()
         return f"{n} {a}".strip() or "—"
 
-    # ── Logo: primero arg explícito, luego assets/ ───────────────────
-    logo = None
+    # ── Logo centrado + encabezado ───────────────────────────────────
+    # Logo solo, centrado, más grande
     _logo_p = Path(logo_path) if logo_path else LOGO_PATH
     if _logo_p.exists():
         try:
-            logo = RLImage(str(_logo_p), width=4.5*cm,
-                           height=1.6*cm, kind="proportional")
+            logo_centered = RLImage(str(_logo_p), width=8*cm, height=3*cm,
+                                    kind="proportional")
+            logo_tbl = Table([[logo_centered]], colWidths=[cw])
+            logo_tbl.setStyle(TableStyle([
+                ("ALIGN",        (0, 0), (0, 0), "CENTER"),
+                ("VALIGN",       (0, 0), (0, 0), "MIDDLE"),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 8),
+            ]))
+            story.append(logo_tbl)
         except Exception:
             pass
 
-    # ── Encabezado ───────────────────────────────────────────────────
-    hdr = Table([[
-        logo if logo else Paragraph("", sSu),
-        [
-            Paragraph("INFORME DE PRUEBA DE AIRE ESPIRADO", sT),
-            Paragraph(
-                f"Estudio: {data.get('tipo_analisis', 'SIBO')} — Sustrato: {data.get('sustrato', '')}", sSu),
-            Paragraph(f"Fecha: {fv.get('pac_fecha', TODAY)}", sSu),
-        ],
-    ]], colWidths=[5*cm, cw - 5*cm])
-    hdr.setStyle(TableStyle([
-        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN",         (1, 0), (1, 0),   "CENTER"),
-        ("LINEBELOW",     (0, 0), (-1, -1), 1.2, DARK),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
-    story += [hdr, Spacer(1, 6)]
+    # Título, subtítulo (tipo + sustrato) y fecha
+    story.append(Paragraph("INFORME DE PRUEBA DE AIRE ESPIRADO", sT))
+    story.append(Paragraph(
+        f"{data.get('tipo_analisis', 'SIBO')} — Sustrato: {data.get('sustrato', '')}",
+        sSu))
+    story.append(Paragraph(f"Fecha: {fv.get('pac_fecha', TODAY)}", sSu))
+    story.append(Spacer(1, 4))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=DARK))
+    story.append(Spacer(1, 6))
 
     # ── Info block ───────────────────────────────────────────────────
     def ib(pairs):
@@ -249,12 +248,14 @@ def generate_pdf(data: dict,
 
     # ── Efectos adversos ─────────────────────────────────────────────
     ef_raw = data.get("ef_vars", {})
+
     ef_found = [
         (time_lbls[i], ", ".join(
             s for s in EFECTOS if ef_raw.get(i, {}).get(s, False)))
         for i in range(len(time_lbls))
         if any(ef_raw.get(i, {}).get(s, False) for s in EFECTOS)
     ]
+
     story.append(Paragraph("EFECTOS ADVERSOS DURANTE LA PRUEBA", sSH))
     if ef_found:
         def pth(tx):
@@ -265,6 +266,7 @@ def generate_pdf(data: dict,
             [[Paragraph(tl, sBo), Paragraph(sx, sBo)] for tl, sx in ef_found],
             colWidths=[3*cm, cw-3*cm],
         )
+
         et.setStyle(TableStyle([
             ("BACKGROUND",    (0, 0), (-1, 0),  DARK),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [LGREY, colors.white]),

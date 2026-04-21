@@ -11,12 +11,7 @@ import os
 import io
 import streamlit as st
 from datetime import datetime, date
-from pathlib import Path
 
-# Rutas de archivos persistentes (relativas al directorio del proyecto)
-ASSETS_DIR = Path(__file__).parent.parent / "assets"
-LOGO_PATH = ASSETS_DIR / "logo.png"
-FIRMA_PATH = ASSETS_DIR / "firma.png"
 
 ESPECIALIDADES = [
     "Gastroenterología", "Clínica Médica / Medicina Interna",
@@ -27,7 +22,7 @@ ESPECIALIDADES = [
 ]
 SEXOS = ["Masculino", "Femenino", "Otro"]
 SINTOMAS = ["Flatulencia", "Dolor Abdominal",
-            "Diarrea", "Estreñimiento", "Distensión"]
+            "Diarrea", "Estreñimiento", "Distensión", "Eructos"]
 
 TIPO_SUSTRATO = {
     "SIBO":                       ["Lactulosa", "Glucosa"],
@@ -90,24 +85,6 @@ _OS_REST = sorted([o for o in [
     "O. S. PATRONES DE CABOTAJE"
 ] if o not in _OS_TOP])
 OBRAS_SOCIALES = _OS_TOP + _OS_REST
-
-
-# ── Helpers ─────────────────────────────────────────────────────────
-
-def _ensure_assets():
-    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def _load_asset(path: Path):
-    """Carga un archivo de /assets/ y retorna sus bytes, o None si no existe."""
-    if path.exists():
-        return path.read_bytes()
-    return None
-
-
-def _save_asset(path: Path, data: bytes):
-    _ensure_assets()
-    path.write_bytes(data)
 
 
 def _init_state():
@@ -210,7 +187,9 @@ def render():
 
     _init_state()
 
-    _ensure_assets()
+    # v es un entero que se incrementa al limpiar desde app.py.
+    # Al cambiar las keys de todos los widgets, Streamlit los recrea vacíos.
+    v = st.session_state.get("_v", 0)
 
     col1, col2 = st.columns(2, gap="medium")
 
@@ -223,20 +202,20 @@ def render():
         with st.expander("**Profesional médico**", expanded=True):
             c1, c2 = st.columns(2)
             st.session_state["prof_nombre"] = c1.text_input(
-                "Nombre",   value=st.session_state["prof_nombre"],   key="_pn", placeholder="Julián Gastón")
+                "Nombre",   value=st.session_state["prof_nombre"],   key=f"_pn{v}", placeholder="Julián Gastón")
             st.session_state["prof_apellido"] = c2.text_input(
-                "Apellido", value=st.session_state["prof_apellido"], key="_pa", placeholder="Ahualli")
+                "Apellido", value=st.session_state["prof_apellido"], key=f"_pa{v}", placeholder="Ahualli")
 
             esp_idx = ESPECIALIDADES.index(st.session_state["prof_esp"]) \
                 if st.session_state["prof_esp"] in ESPECIALIDADES else 0
             st.session_state["prof_esp"] = st.selectbox(
-                "Especialidad", ESPECIALIDADES, index=esp_idx, key="_esp")
+                "Especialidad", ESPECIALIDADES, index=esp_idx, key=f"_esp{v}")
 
             c3, c4 = st.columns(2)
             st.session_state["prof_mat"] = c3.text_input(
-                "Matrícula",   value=st.session_state["prof_mat"],  key="_pm", placeholder="MN: 128.019 - MP: 229.654")
+                "Matrícula",   value=st.session_state["prof_mat"],  key=f"_pm{v}", placeholder="MN: 128.019 - MP: 229.654")
             st.session_state["prof_inst"] = c4.text_input(
-                "Institución", value=st.session_state["prof_inst"], key="_pi", placeholder="CIMEQ")
+                "Institución", value=st.session_state["prof_inst"], key=f"_pi{v}", placeholder="CIMEQ")
 
         # ── Paciente ─────────────────────────────────────────────────
 
@@ -246,10 +225,10 @@ def render():
         with st.expander("**Datos del paciente**", expanded=True):
             c1, c2 = st.columns(2)
             st.session_state["pac_nombre"] = c1.text_input(
-                "Nombre",   value=st.session_state["pac_nombre"],   key="_pcn")
+                "Nombre",   value=st.session_state["pac_nombre"],   key=f"_pcn{v}")
 
             st.session_state["pac_apellido"] = c2.text_input(
-                "Apellido", value=st.session_state["pac_apellido"], key="_pca")
+                "Apellido", value=st.session_state["pac_apellido"], key=f"_pca{v}")
 
             c3, c4 = st.columns(2)
 
@@ -257,7 +236,7 @@ def render():
             fnac = c3.text_input(
                 "Fecha de nacimiento (DD/MM/AAAA)",
                 value=st.session_state["pac_fnac"],
-                key="_pfnac", placeholder="25/03/1985")
+                key=f"_pfnac{v}", placeholder="25/03/1985")
             if not _validate_date(fnac):
                 c3.error("Formato inválido — DD/MM/AAAA")
             else:
@@ -267,13 +246,13 @@ def render():
             sexo_idx = SEXOS.index(st.session_state["pac_sexo"]) \
                 if st.session_state["pac_sexo"] in SEXOS else 0
             st.session_state["pac_sexo"] = c4.selectbox(
-                "Sexo", SEXOS, index=sexo_idx, key="_psexo")
+                "Sexo", SEXOS, index=sexo_idx, key=f"_psexo{v}")
 
             c5, _ = st.columns(2)
             fecha_est = c5.text_input(
                 "Fecha del estudio (DD/MM/AAAA)",
                 value=st.session_state["pac_fecha"],
-                key="_pfecha", placeholder=TODAY)
+                key=f"_pfecha{v}", placeholder=TODAY)
             if not _validate_date(fecha_est):
                 c5.error("Formato inválido — DD/MM/AAAA")
             else:
@@ -282,11 +261,10 @@ def render():
             # Obra Social — buscador predictivo
             st.markdown("**Obra Social / Prepaga**")
 
-            # Usamos un callback o simplemente evitamos la asignación directa conflictiva
             os_search = st.text_input(
                 "Buscar obra social",
                 value=st.session_state.get("_os_search_txt", ""),
-                key="_os_search_txt",
+                key=f"_os_search_txt{v}",
                 placeholder="Escribí para buscar o agregar...",
                 label_visibility="collapsed",
             )
@@ -312,7 +290,7 @@ def render():
                         "Seleccioná",
                         options,
                         index=cur_idx,
-                        key=f"_os_radio_{term}",
+                        key=f"_os_radio_{term}{v}",
                         label_visibility="collapsed",
                     )
 
@@ -324,14 +302,13 @@ def render():
                                     [o for o in OBRAS_SOCIALES if o not in _OS_TOP])
                                 OBRAS_SOCIALES[:] = _OS_TOP + rest
                             st.session_state["pac_obra_social"] = term
-                            # ELIMINAMOS la línea conflictiva: st.session_state["_os_search_txt"] = term
                         else:
                             st.session_state["pac_obra_social"] = choice
 
             else:
                 st.caption("Sin coincidencias.")
                 if term:
-                    if st.button(f'➕ Agregar "{term}"', key="_os_add"):
+                    if st.button(f'➕ Agregar "{term}"', key=f"_os_add{v}"):
                         OBRAS_SOCIALES.append(term)
                         rest = sorted(
                             [o for o in OBRAS_SOCIALES if o not in _OS_TOP])
@@ -344,46 +321,6 @@ def render():
             if cur_os:
                 st.caption(f"✔ Seleccionada: **{cur_os}**")
 
-        # ── Logo de la institución ────────────────────────────────────
-        with st.expander("**Logo de la institución**", expanded=False):
-            logo_bytes = _load_asset(LOGO_PATH)
-            if logo_bytes:
-                st.image(logo_bytes, width=200)
-                st.caption(f"Logo cargado desde `assets/logo.png`")
-            else:
-                st.caption("No hay logo guardado. Subí uno a continuación.")
-
-            st.markdown("**Reemplazar logo:**")
-            logo_file = st.file_uploader(
-                "Subir logo (JPG, PNG)", type=["jpg", "jpeg", "png", "webp", "bmp"],
-                key="_logo_up", label_visibility="collapsed")
-            if logo_file:
-                data = logo_file.read()
-                _save_asset(LOGO_PATH, data)
-                st.success(
-                    "Logo guardado en `assets/logo.png`. Se usará en todos los PDF.")
-                st.rerun()
-
-        # ── Firma digital ─────────────────────────────────────────────
-        with st.expander("**Firma digital del profesional**", expanded=False):
-            firma_bytes = _load_asset(FIRMA_PATH)
-            if firma_bytes:
-                st.image(firma_bytes, width=220)
-                st.caption(f"Firma cargada desde `assets/firma.png`")
-            else:
-                st.caption("No hay firma guardada. Subí una a continuación.")
-
-            st.markdown("**Reemplazar firma:**")
-            firma_file = st.file_uploader(
-                "Subir firma (JPG, PNG)", type=["jpg", "jpeg", "png"],
-                key="_firma_up", label_visibility="collapsed")
-            if firma_file:
-                data = firma_file.read()
-                _save_asset(FIRMA_PATH, data)
-                st.success(
-                    "Firma guardada en `assets/firma.png`. Se usará en todos los PDF.")
-                st.rerun()
-
     # ═══════════════════════════════════════════
     # COL 2 — Síntomas + Análisis + Mediciones + PPM
     # ═══════════════════════════════════════════
@@ -394,17 +331,18 @@ def render():
             sc = st.columns(3)
             for i, s in enumerate(SINTOMAS):
                 st.session_state[f"sint_{s}"] = sc[i % 3].checkbox(
-                    s, value=st.session_state[f"sint_{s}"], key=f"_cb_{s}")
+                    s, value=st.session_state[f"sint_{s}"], key=f"_cb_{s}{v}")
             st.session_state["sint_otros"] = st.text_input(
                 "Otros síntomas",
-                value=st.session_state["sint_otros"], key="_siotros")
+                value=st.session_state["sint_otros"],
+                key=f"sint_otros{v}")
 
         # ── Tipo de análisis ─────────────────────────────────────────
         with st.expander("**Tipo de análisis y sustrato**", expanded=True):
             tipo_idx = TIPOS.index(st.session_state["tipo_analisis"]) \
                 if st.session_state["tipo_analisis"] in TIPOS else 0
             tipo = st.selectbox("Tipo de análisis", TIPOS,
-                                index=tipo_idx, key="_tipo")
+                                index=tipo_idx, key=f"_tipo{v}")
             st.session_state["tipo_analisis"] = tipo
 
             sust_opts = TIPO_SUSTRATO[tipo]
@@ -412,7 +350,7 @@ def render():
             sust_idx = sust_opts.index(
                 cur_sust) if cur_sust in sust_opts else 0
             sustrato = st.selectbox("Sustrato", sust_opts,
-                                    index=sust_idx, key="_sust")
+                                    index=sust_idx, key=f"_sust{v}")
             st.session_state["sustrato"] = sustrato
 
             # Autoajuste cuando cambia tipo o sustrato
@@ -436,7 +374,7 @@ def render():
                 "Cantidad de mediciones",
                 min_value=3, max_value=15,
                 value=st.session_state["n_mediciones"],
-                step=1, key="_n",
+                step=1, key=f"_n{v}",
                 help=f"Valor por defecto para este estudio: {n_def}")
             st.session_state["n_mediciones"] = n
 
@@ -446,7 +384,7 @@ def render():
             iv_idx = iv_opts.index(iv_cur) if iv_cur in iv_opts else 2
             iv = st.radio(
                 "Minutos entre tomas",
-                iv_opts, index=iv_idx, horizontal=True, key="_iv",
+                iv_opts, index=iv_idx, horizontal=True, key=f"_iv{v}",
                 format_func=lambda x: f"{x} min",
                 help=f"Valor por defecto para este estudio: {iv_def} min")
             st.session_state["intervalo"] = iv
@@ -456,7 +394,7 @@ def render():
                 "Umbral positivo H₂ (ppm)",
                 min_value=5, max_value=50,
                 value=st.session_state["umbral"],
-                step=1, key="_umb",
+                step=1, key=f"_umb{v}",
                 help=f"Valor por defecto para este estudio: {umb_def} ppm")
             st.session_state["umbral"] = umb
 
@@ -489,17 +427,8 @@ def render():
                 st.session_state[f"h2_{i}"] = rc[1].text_input(
                     f"h2_{i}", value=st.session_state[f"h2_{i}"],
                     label_visibility="collapsed",
-                    key=f"_h2_{i}", placeholder="ppm")
+                    key=f"_h2_{i}_{v}", placeholder="ppm")
                 st.session_state[f"ch4_{i}"] = rc[2].text_input(
                     f"ch4_{i}", value=st.session_state[f"ch4_{i}"],
                     label_visibility="collapsed",
-                    key=f"_c4_{i}", placeholder="ppm")
-
-        # ── Interpretación ───────────────────────────────────────────
-        with st.expander("**Interpretación del profesional (opcional)**",
-                         expanded=False):
-            st.session_state["interpretacion"] = st.text_area(
-                "Observaciones",
-                value=st.session_state["interpretacion"],
-                height=80, key="_interp",
-                label_visibility="collapsed")
+                    key=f"_c4_{i}_{v}", placeholder="ppm")
