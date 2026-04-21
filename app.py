@@ -6,7 +6,7 @@ import streamlit as st
 from datetime import datetime
 
 # Para limpiar la página
-from streamlit_js_eval import streamlit_js_eval
+# from streamlit_js_eval import streamlit_js_eval  # ya no necesario
 
 
 # import auth
@@ -16,9 +16,9 @@ import pages.grafico as pg_grafico
 from logic.pdf_gen import generate_pdf
 
 EFECTOS = ["Flatulencia", "Dolor Abdominal",
-           "Diarrea", "Estreñimiento", "Distensión"]
+           "Diarrea", "Estreñimiento", "Distensión", "Eructos"]
 SINTOMAS = ["Flatulencia", "Dolor Abdominal",
-            "Diarrea", "Estreñimiento", "Distensión"]
+            "Diarrea", "Estreñimiento", "Distensión", "Eructos"]
 TODAY = datetime.now().strftime("%d/%m/%Y")
 
 # BLOQUE LOGIN con Streamlit
@@ -134,6 +134,7 @@ def _build_pdf_data():
             ch4_vals.append(None)
 
     sint_pre = [s for s in SINTOMAS if ss.get(f"sint_{s}", False)]
+
     ef_vars = {i: {s: ss.get(f"ef_{i}_{s}", False)
                    for s in EFECTOS} for i in range(n)}
 
@@ -189,11 +190,12 @@ def show_app():
             else:
                 try:
                     data = _build_pdf_data()
+
                     # Logo y firma: generate_pdf los carga desde assets/ por defecto
                     pdf_bytes = generate_pdf(data)
                     apellido = st.session_state.get(
                         "pac_apellido", "informe").replace(" ", "_")
-                    filename = f"SIBO_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+                    filename = f"Test_Aire_Espirado_{apellido}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
                     st.session_state["_pdf_bytes"] = pdf_bytes
                     st.session_state["_pdf_filename"] = filename
                     st.toast("PDF generado. Hacé clic en Descargar.", icon="✅")
@@ -216,29 +218,40 @@ def show_app():
         #    st.rerun()
 
         if bc3.button("Limpiar", width='stretch'):
-            streamlit_js_eval(js_expressions="parent.window.location.reload()")
+            # Incrementar la versión de widgets limpia todos los campos de la UI.
+            # Streamlit asocia cada widget a su key; al cambiar las keys
+            # (agregando el nuevo número de versión) recrea todos los widgets vacíos.
+            v = st.session_state.get("_v", 0) + 1
+            # Borrar todo excepto _pdf_bytes/_pdf_filename y la nueva versión
+            for k in list(st.session_state.keys()):
+                del st.session_state[k]
+            st.session_state["_v"] = v
+            st.rerun()
 
         if bc4.button("Salir", width='stretch'):
             # Eliminamos el rol para cerrar la sesión efectivamente
             del st.session_state["role"]
             st.rerun()
 
-    tab1, tab2, tab3 = st.tabs([
-        "  Datos y valores  ",
-        "  Efectos  ",
-        "  Gráfico y AUC  ",
+    tab1, tab2 = st.tabs([
+        "  Datos y Resultado ",
+        "  Configuración "
     ])
+
     with tab1:
         pg_datos.render()
-    with tab2:
-        pg_efectos.render()
-    with tab3:
+        st.divider()
         pg_grafico.render()
+        st.divider()
+        pg_efectos.render()
+    with tab2:
+        pg_efectos.firma_render()
+
+    # Diseño en una sola página — sin pestañas
 
 
 # ── ENTRY POINT ──────────────────────────────────────────────────────
 # Reemplaza el bloque final por este:
-
 # if "role" not in st.session_state:
 #    login()
 # else:
