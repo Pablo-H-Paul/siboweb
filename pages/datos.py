@@ -91,7 +91,7 @@ def _init_state():
     defaults = {
         "prof_nombre": "Julián Gastón", "prof_apellido": "Ahualli", "prof_esp": "Gastroenterología",
         "prof_mat": "MN: 128.019 - MP: 229.654", "prof_inst": "CIMEQ", "prof_email": "", "prof_tel": "",
-        "pac_nombre": "", "pac_apellido": "",
+        "pac_nombre": "", "pac_apellido": "", "pac_dni": "",
         "pac_fnac": "", "pac_edad": "", "pac_sexo": "Femenino",
         "pac_fecha": TODAY, "pac_obra_social": "",
         "tipo_analisis": "SIBO", "sustrato": "Lactulosa",
@@ -149,6 +149,7 @@ def _tipo_changed(tipo, sustrato):
 _PAC_REQUIRED = [
     ("pac_nombre",      "Nombre del paciente"),
     ("pac_apellido",    "Apellido del paciente"),
+    ("pac_dni",         "DNI del paciente"),
     ("pac_fnac",        "Fecha de nacimiento"),
     ("pac_sexo",        "Sexo"),
     ("pac_obra_social", "Obra Social / Prepaga"),
@@ -231,30 +232,32 @@ def render():
                 "Apellido", value=st.session_state["pac_apellido"], key=f"_pca{v}")
 
             c3, c4 = st.columns(2)
+            st.session_state["pac_dni"] = c3.text_input(
+                "DNI", value=st.session_state["pac_dni"], key=f"_pcdni{v}")
 
             # Fecha de nacimiento — ingreso manual DD/MM/AAAA
-            fnac = c3.text_input(
+            fnac = c4.text_input(
                 "Fecha de nacimiento (DD/MM/AAAA)",
                 value=st.session_state["pac_fnac"],
                 key=f"_pfnac{v}", placeholder="25/03/1985")
             if not _validate_date(fnac):
-                c3.error("Formato inválido — DD/MM/AAAA")
+                c4.error("Formato inválido — DD/MM/AAAA")
             else:
                 st.session_state["pac_fnac"] = fnac
                 st.session_state["pac_edad"] = _calc_edad(fnac)
 
+            c5, c6 = st.columns(2)
             sexo_idx = SEXOS.index(st.session_state["pac_sexo"]) \
                 if st.session_state["pac_sexo"] in SEXOS else 0
-            st.session_state["pac_sexo"] = c4.selectbox(
+            st.session_state["pac_sexo"] = c5.selectbox(
                 "Sexo", SEXOS, index=sexo_idx, key=f"_psexo{v}")
 
-            c5, _ = st.columns(2)
-            fecha_est = c5.text_input(
+            fecha_est = c6.text_input(
                 "Fecha del estudio (DD/MM/AAAA)",
                 value=st.session_state["pac_fecha"],
                 key=f"_pfecha{v}", placeholder=TODAY)
             if not _validate_date(fecha_est):
-                c5.error("Formato inválido — DD/MM/AAAA")
+                c6.error("Formato inválido — DD/MM/AAAA")
             else:
                 st.session_state["pac_fecha"] = fecha_est
 

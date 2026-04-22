@@ -141,7 +141,7 @@ def _build_pdf_data():
     fields = {k: ss.get(k, "") for k in [
         "prof_nombre", "prof_apellido", "prof_esp", "prof_mat", "prof_inst",
         "prof_email", "prof_tel",
-        "pac_nombre", "pac_apellido", "pac_fnac", "pac_edad",
+        "pac_nombre", "pac_apellido", "pac_dni", "pac_fnac", "pac_edad",
         "pac_sexo", "pac_fecha", "pac_obra_social",
     ]}
 

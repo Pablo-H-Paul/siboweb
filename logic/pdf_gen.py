@@ -103,6 +103,7 @@ def generate_pdf(data: dict,
     def full(prefix):
         n = fv.get(f"{prefix}_nombre",   "").strip()
         a = fv.get(f"{prefix}_apellido", "").strip()
+        dni = fv.get(f"{prefix}_dni", "").strip()
         return f"{n} {a}".strip() or "—"
 
     # ── Logo centrado + encabezado ───────────────────────────────────
@@ -158,6 +159,7 @@ def generate_pdf(data: dict,
     ])]
     pcb = [Paragraph("DATOS DEL PACIENTE", sSH), ib([
         ("Nombre",      full("pac")),
+        ("DNI",      fv.get("pac_dni", "")),
         ("Fecha Nac.",  fv.get("pac_fnac", "")),
         ("Edad / Sexo",
          f"{fv.get('pac_edad', '')} / {fv.get('pac_sexo', '')}"),
